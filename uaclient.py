@@ -9,11 +9,52 @@ import sys
 from xml.sax import make_parser
 from xml.sax.handler import ContentHandler
 
+class XMLHandler(ContentHandler):
+
+    def __init__(self):
+
+        self.labels={
+            "account":["username", "passwd"],
+            "uaserver":["ip", "puerto"],
+            "rtpaudio":["puerto"],
+            "regproxy":["ip", "puerto"],
+            "log":["path"],
+            "audio":["path"],
+            "server":["name", "ip", "puerto"],
+            "database":["path", "passwdpath"]}
+        self.list=[]
+
+    def startElement(self, name, atributes):
+
+        dic={}
+        if name in self.labels:
+            dic["name"]= name
+            for atribute in self.labels[name]:
+                dic[atribute]=atributes.get(atribute, "")
+            self.list.append(dic)
+
+    def get_tags(self):
+        return self.list
+
+if __name__=="__main__":
+
+    try:
+        FICH = sys.argv[1]
+        if not os.access(sys.argv[1], os.F_OK):
+            print "Usage: the file doesn't exist"
+            sys.exit()
+    except ValueError:
+        print "Usage: python uaserver.py config"
+
+    parser = make_parser()
+    parser.setContentHandler(XMLHandler())
+    parser.parse(open(FICH))
+
+
 try:
 
 # $ python uaclient.py config metodo opcion
 
-    CONFIG = sys.argv[1]
     METHOD = sys.argv[2].upper()
     OPTION = sys.argv[3]
 
