@@ -5,6 +5,7 @@
 import SocketServer
 import sys
 import os
+from uaclient import XMLHandler
 from xml.sax import make_parser
 from xml.sax.handler import ContentHandler
 
@@ -73,39 +74,7 @@ if __name__ == "__main__":
         print "Usage: python uaserver.py config"
     print "Listening..."
     # Creamos servidor de SIP y escuchamos
+    #SERVER Y PORT ESTAN EN EL FICHERO XML
     serv = SocketServer.UDPServer((SERVER, PORT), EchoHandler)
     serv.serve_forever()
-
-class XMLHandler(ContentHandler):
-
-    def __init__(self):
-
-        self.labels={
-            "account":["username", "passwd"],
-            "uaserver":["ip", "puerto"],
-            "rtpaudio":["puerto"],
-            "regproxy":["ip", "puerto"],
-            "log":["path"],
-            "audio":["path"],
-            "server":["name", "ip", "puerto"],
-            "database":["path", "passwdpath"]}
-        self.list=[]
-
-    def startElement(self, name, atributes):
-
-        dic={}
-        if name in self.labels:
-            dic["name"]= name
-            for atribute in self.labels[name]:
-                dic[atribute]=atributes.get(atribute, "")
-            self.list.append(dic)
-
-    def get_tags(self):
-        return self.list
-
-if __name__=="__main__":
-
-    parser = make_parser()
-    parser.setContentHandler(XMLHandler())
-    parser.parse(open(FICH))
 
