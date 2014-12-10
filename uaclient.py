@@ -23,19 +23,25 @@ try:
        check1 = DIRECTION.find("@")
        check2 = DIRECTION.find(".")
        
-       Message = METODO + " sip:" + DIRECCION + " SIP/2.0\r\n" # En DIRECCION debe figurar al final :1234Puerto??? ejemplo practica
+       Message = METHOD + " sip:" + DIRECCION + " SIP/2.0\r\n" # En DIRECCION de invite va el destinatario
+       # añadir SDP del INVITE 
        #Creamos el socket, lo configuramos y lo atamos a un servidor/puerto
        my_socket.send(Message + 'Expires: ' + str(EXPIRES) + '\r\n\r\n')
-        # para conseguir el EXPIRES debe haberse registrado previamente y debemos haber guardado sus parametros de cliente
+       
     elif METHOD == "BYE":
 
        DIRECTION = OPTION
        check1 = DIRECTION.find("@")
-       check2 = DIRECTION.find(".")    
+       check2 = DIRECTION.find(".")
 
     elif METHOD == "REGISTER":
     
         EXPIRES = OPTION
+        
+        # para conseguir mi nombre hay que sacarlo del ua1 o ua2 
+
+
+
 
     # Contenido que vamos a enviar
     LINE = METODO + " sip:" + NICK + "@" + SERVER + " SIP/2.0\r\n"
