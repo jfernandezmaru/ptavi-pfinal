@@ -19,15 +19,19 @@ try:
 
     if METHOD == "INVITE":
 
-           DIRECTION = OPTION
-           check1 = DIRECTION.find("@")
-           check2 = DIRECTION.find(".")
-
+       DIRECTION = OPTION
+       check1 = DIRECTION.find("@")
+       check2 = DIRECTION.find(".")
+       
+       Message = METODO + " sip:" + DIRECCION + " SIP/2.0\r\n" # En DIRECCION debe figurar al final :1234Puerto??? ejemplo practica
+       #Creamos el socket, lo configuramos y lo atamos a un servidor/puerto
+       my_socket.send(Message + 'Expires: ' + str(EXPIRES) + '\r\n\r\n')
+        # para conseguir el EXPIRES debe haberse registrado previamente y debemos haber guardado sus parametros de cliente
     elif METHOD == "BYE":
 
-           DIRECTION = OPTION
-           check1 = DIRECTION.find("@")
-           check2 = DIRECTION.find(".")    
+       DIRECTION = OPTION
+       check1 = DIRECTION.find("@")
+       check2 = DIRECTION.find(".")    
 
     elif METHOD == "REGISTER":
     
@@ -36,6 +40,8 @@ try:
     # Contenido que vamos a enviar
     LINE = METODO + " sip:" + NICK + "@" + SERVER + " SIP/2.0\r\n"
     # Creamos el socket, lo configuramos y lo atamos a un servidor/puerto
+    #           Message = (REGISTER + ' sip:' + LINE + ' SIP/2.0' + '\r\n')
+    #           my_socket.send(Message + 'Expires: ' + str(EXPIRES) + '\r\n\r\n')
     my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     my_socket.connect((SERVER, PORT))

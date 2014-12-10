@@ -40,7 +40,8 @@ class EchoHandler(SocketServer.DatagramRequestHandler):
 
                         message = "SIP/2.0 100 Trying\r\n\r\n"
                         message = message + "SIP/2.0 180 Ringing\r\n\r\n"
-                        message = message + "SIP/2.0 200 OK\r\n\r\n"
+                        message = message + "SIP/2.0 200 OK\r\n\r\n" 
+                        #INCLUIR SDP CON CABECERAS
                         self.wfile.write(message)
                     elif Metodo == "ACK":
 
@@ -64,21 +65,17 @@ class EchoHandler(SocketServer.DatagramRequestHandler):
 if __name__ == "__main__":
 
     try:
-        SERVER = sys.argv[1]
-        PORT = int(sys.argv[2])
-        if not os.access(sys.argv[3], os.F_OK):
-            print "Usage: python server.py IP port audio_file"
+        FICH = sys.argv[1]
+        if not os.access(sys.argv[1], os.F_OK):
+            print "Usage: the file doesn't exist"
             sys.exit()
-        AUDIO = sys.argv[3]
     except ValueError:
         print "Usage: python uaserver.py config"
-
     print "Listening..."
     # Creamos servidor de SIP y escuchamos
     serv = SocketServer.UDPServer((SERVER, PORT), EchoHandler)
     serv.serve_forever()
-    
-    
+
 class XMLHandler(ContentHandler):
 
     def __init__(self):
@@ -110,5 +107,5 @@ if __name__=="__main__":
 
     parser = make_parser()
     parser.setContentHandler(XMLHandler())
-    parser.parse(open("ua1.xml"))    #Falta cambiar el nombre del fichero por el sys.argv
+    parser.parse(open(FICH))
 
