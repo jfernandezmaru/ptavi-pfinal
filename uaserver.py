@@ -5,7 +5,6 @@
 import SocketServer
 import sys
 import os
-from uaclient import XMLHandler
 from xml.sax import make_parser
 from xml.sax.handler import ContentHandler
 
@@ -14,7 +13,52 @@ from xml.sax.handler import ContentHandler
 """
 
 
-class EchoHandler(SocketServer.DatagramRequestHandler):
+class XMLHandler(ContentHandler):
+
+    
+    def __init__(self):
+
+        self.labels={"account_username":"", "account_passwd":"",
+            "uaserver_ip":"","uaserver_puerto":"","rtpaudio_puerto":"",
+            "regproxy_ip":"","regproxy_puerto":"","log_path":"",
+            "audio_path":"","server_name":"","server_ip":"","server_puerto":"",
+            "database_path":"","database_passwdpath":""}   
+
+        self.atributes=["username", "passwd", "ip", "puerto", "path", "name",
+                        "passwdpath"]
+
+    def startElement(self, name, attrs):
+
+        dic={}
+        label = name[0:3]
+        all_labels = self.labels.keys()
+        key_wanted = ""
+        for count in range(len(all_labels)):    #quiero que count sea número
+            if label == all_labels[count][0:3]:
+                key_wanted = all_labels[count].split("_")[0]
+                print "@@@@@@@@@@@@@@@@@@@@@@@" + key_wanted
+                break
+
+        for atribute in self.atributes:
+        
+            print "###################" + atribute
+            label = key_wanted + "_" + atribute
+            if label in self.labels:
+                self.labels[label] = attrs.get(atribute, "")
+                
+                print "Encuentro un atributo ~~~~~~~~~~~~~~" + atribute
+                print "Guardo de el ===========" + self.labels[label]
+
+        dic_atributes = self.labels
+
+    def get_tags(self):
+        return self.labels.keys()
+        
+    def get_labels(self):
+        return self.labels
+
+
+class SIPHandler(SocketServer.DatagramRequestHandler):
     """
         Clase de Servidor SIP
     """
@@ -72,9 +116,21 @@ if __name__ == "__main__":
             sys.exit()
     except ValueError:
         print "Usage: python uaserver.py config"
-    print "Listening..."
+
+    parser = make_parser()
+    Handler = XMLHandler()
+    parser.setContentHandler(Handler)
+    parser.parse(open(FICH))
+    dic_labels = Handler.get_labels()
+    print dic_labels
+    SERVER = dic_labels["uaserver_ip"]
+    PORT = int(dic_labels["uaserver_puerto"])
+    print "Servidor " + str(SERVER) + " y puerto " + str(PORT)
+    
+
+    
     # Creamos servidor de SIP y escuchamos
     #SERVER Y PORT ESTAN EN EL FICHERO XML
-    serv = SocketServer.UDPServer((SERVER, PORT), EchoHandler)
+    serv = SocketServer.UDPServer((SERVER, PORT), SIPHandler)
     serv.serve_forever()
 

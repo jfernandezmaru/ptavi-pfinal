@@ -8,53 +8,11 @@ Programa cliente que abre un socket a un servidor
 import socket
 import sys
 import os
+from uaserver import XMLHandler
 from xml.sax import make_parser
 from xml.sax.handler import ContentHandler
 
-class XMLHandler(ContentHandler):
 
-    
-    def __init__(self):
-
-        self.labels={"account_username":"", "account_passwd":"",
-            "uaserver_ip":"","uaserver_puerto":"","rtpaudio_puerto":"",
-            "regproxy_ip":"","regproxy_puerto":"","log_path":"",
-            "audio_path":"","server_name":"","server_ip":"","server_puerto":"",
-            "database_path":"","database_passwdpath":""}   
-
-        self.atributes=["username", "passwd", "ip", "puerto", "path", "name",
-                        "passwdpath"]
-
-    def startElement(self, name, attrs):
-
-        dic={}
-        label = name[0:3]
-        all_labels = self.labels.keys()
-        key_wanted = ""
-        for count in range(len(all_labels)):    #quiero que count sea número
-            if label == all_labels[count][0:3]:
-                key_wanted = all_labels[count].split("_")[0]
-                print "@@@@@@@@@@@@@@@@@@@@@@@" + key_wanted
-                break
-
-        for atribute in self.atributes:
-        
-            print "###################" + atribute
-            label = key_wanted + "_" + atribute
-            if label in self.labels:
-                self.labels[label] = attrs.get(atribute, "")
-                
-                print "Encuentro un atributo ~~~~~~~~~~~~~~" + atribute
-                print "Guardo de el ===========" + self.labels[label]
-
-        dic_atributes = self.labels
-
-    def get_tags(self):
-        return self.labels.keys()
-        
-    def get_labels(self):
-        return self.labels
-    
 if __name__=="__main__":
 
     try:
@@ -80,9 +38,11 @@ if __name__=="__main__":
 
 try:
 
-# $ python uaclient.py config metodo opcion
+    # $python uaclient.py config metodo opción
+
     METHOD = sys.argv[2].upper()
     OPTION = sys.argv[3]
+    Message = ""
     if METHOD == "INVITE":
 
         DIRECTION = OPTION
@@ -92,7 +52,7 @@ try:
             Message = METHOD + " sip:" + DIRECCION + " SIP/2.0\r\n" # En DIRECCION de invite va el destinatario
             
             # añadir SDP del INVITE
-            Message = Message + + 'Expires: ' + str(EXPIRES) + '\r\n\r\n'
+            Message = Message + + '\r\n'
             
             
         else:
@@ -131,7 +91,7 @@ try:
 
     my_socket.send(Message + '\r\n')    #borrado un '\r\n' puede que falle
     data = my_socket.recv(1024)
-    print "Enviando: " + LINE
+    print "Enviando: " + Message
     print "Recibido:", data
     processed_data = data.split('\r\n\r\n')
     # Si recibimos trying Ringing y OK asentimos con ACK
