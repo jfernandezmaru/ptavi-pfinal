@@ -30,15 +30,21 @@ class XMLHandler(ContentHandler):
         "server":["name", "ip", "puerto"],
         "database":["path", "passwdpath"]}
         """
+        self.atributes=["username", "passwd", "ip", "puerto", "path", "name",
+                        "passwdpath"] 
 
     def startElement(self, name, atributes):
 
         dic={}
-        if name in self.labels:
-            dic["name"]= name
-            for atribute in self.labels[name]:
-                dic[atribute]=atributes.get(atribute, "")
-            self.list.append(dic)
+        label = name[0:3]
+        all_labels = self.labels.keys()
+        for count in length(all_labels):
+            if label == all_labels[count][0:3]:
+                key_wanted = all_labels[count].split("_")[0]
+
+        for atribute in self.labels[name]:
+            dic[atribute]=atributes.get(atribute, "")
+        self.list.append(dic)
 
     def get_tags(self):
         return self.labels.keys()
@@ -66,20 +72,32 @@ try:
     OPTION = sys.argv[3]
     if METHOD == "INVITE":
 
-       DIRECTION = OPTION
-       check1 = DIRECTION.find("@")
-       check2 = DIRECTION.find(".")
+        DIRECTION = OPTION
+        check1 = DIRECTION.find("@")
+        check2 = DIRECTION.find(".")
+        if check1 and check2 :
+            Message = METHOD + " sip:" + DIRECCION + " SIP/2.0\r\n" # En DIRECCION de invite va el destinatario
+            # añadir SDP del INVITE 
+            #Creamos el socket, lo configuramos y lo atamos a un servidor/puerto
+            my_socket.send(Message + 'Expires: ' + str(EXPIRES) + '\r\n\r\n')
+        else:
+            print ("Usage: direction not valid")
 
-       Message = METHOD + " sip:" + DIRECCION + " SIP/2.0\r\n" # En DIRECCION de invite va el destinatario
-       # añadir SDP del INVITE 
-       #Creamos el socket, lo configuramos y lo atamos a un servidor/puerto
-       my_socket.send(Message + 'Expires: ' + str(EXPIRES) + '\r\n\r\n')
+        Message = METHOD + " sip:" + DIRECCION + " SIP/2.0\r\n" # En DIRECCION de invite va el destinatario
+        # añadir SDP del INVITE 
+        #Creamos el socket, lo configuramos y lo atamos a un servidor/puerto
+        my_socket.send(Message + 'Expires: ' + str(EXPIRES) + '\r\n\r\n')
 
     elif METHOD == "BYE":
 
-       DIRECTION = OPTION
-       check1 = DIRECTION.find("@")
-       check2 = DIRECTION.find(".")
+        DIRECTION = OPTION
+        check1 = DIRECTION.find("@")
+        check2 = DIRECTION.find(".")
+        if check1 and check2 :
+        
+            Message = METHOD + " sip:" + DIRECCION + " SIP/2.0\r\n" # En DIRECCION de invite va el destinatario
+        else:
+            print ("Usage: direction not valid")
 
     elif METHOD == "REGISTER":
     
