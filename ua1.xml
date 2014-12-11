@@ -1,9 +1,9 @@
 
 <config>
-<accout username="" passwd=""/>
-<uaserver ip="" puerto=""/>
-<rtpaudio puerto= ""/>
-<regproxy ip="" puerto=""/>
-<log path=""/>
-<audio path=""/>
+<accout username="Martinez" passwd="putitas a tutiplen"/>
+<uaserver ip="127.0.0.1" puerto="6969"/>
+<rtpaudio puerto= "6565"/>
+<regproxy ip="128.0.0.1" puerto="9996"/>
+<log path="hola"/>
+<audio path="quetal"/>
 </config>

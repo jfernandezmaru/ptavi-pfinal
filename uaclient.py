@@ -1,5 +1,6 @@
 #!/usr/bin/python
 # -*- coding: iso-8859-15 -*-
+# -*- coding: utf-8 -*-
 # Practica 6 Javier Fernandez Marugan  PTAVI
 """
 Programa cliente que abre un socket a un servidor
@@ -31,23 +32,38 @@ class XMLHandler(ContentHandler):
         "database":["path", "passwdpath"]}
         """
         self.atributes=["username", "passwd", "ip", "puerto", "path", "name",
-                        "passwdpath"] 
+                        "passwdpath"]
 
-    def startElement(self, name, atributes):
+    def startElement(self, name, attrs):
 
         dic={}
         label = name[0:3]
         all_labels = self.labels.keys()
-        for count in length(all_labels):
+        key_wanted = ""
+        print (all_labels)
+        for count in range(len(all_labels)):    #quiero que count sea número
             if label == all_labels[count][0:3]:
                 key_wanted = all_labels[count].split("_")[0]
+                print "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@" + key_wanted
+                break
 
-        for atribute in self.labels[name]:
-            dic[atribute]=atributes.get(atribute, "")
-        self.list.append(dic)
+        for atribute in self.atributes:
+        
+            print "############################" + atribute
+            label = key_wanted + "_" + atribute
+            if label in self.labels:
+                self.labels[label] = attrs.get(atribute, "")
+                
+                print "Encuentro ~~~~~~~~~~~~~~~~~~~~~~~" + atribute
+                print "Hago ====================" + self.labels[label]
+        print self.labels.values()
 
     def get_tags(self):
         return self.labels.keys()
+        
+    def get_labels(self):
+        return self.labels
+
 
 if __name__=="__main__":
 
@@ -64,7 +80,7 @@ if __name__=="__main__":
     parser.setContentHandler(Handler)
     parser.parse(open(FICH))
     list_labels=Handler.get_tags()
-    print list_labels
+
 try:
 
 # $ python uaclient.py config metodo opcion
@@ -111,8 +127,11 @@ try:
     #           Message = (REGISTER + ' sip:' + LINE + ' SIP/2.0' + '\r\n')
     #           my_socket.send(Message + 'Expires: ' + str(EXPIRES) + '\r\n\r\n')
 
-    SERVER = labels["server_ip"]
-    PORT = labels["server_puerto"]
+    dic_atributes = Handler.get_labels()
+    SERVER = dic_atributes["server_ip"]
+    PORT = dic_atributes["server_puerto"]
+    
+    print SERVER + "---------------" + PORT
 
     my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
