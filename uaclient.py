@@ -69,7 +69,14 @@ if __name__=="__main__":
     Handler = XMLHandler()
     parser.setContentHandler(Handler)
     parser.parse(open(FICH))
-    list_labels = Handler.get_tags()
+    dic_labels = Handler.get_labels()
+    print dic_labels
+    SERVER = dic_labels["uaserver_ip"]
+    PORT = int(dic_labels["uaserver_puerto"])
+    print "Servidor " + str(SERVER) + " y puerto " + str(PORT)
+    my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    my_socket.connect((SERVER, PORT))
 
 try:
 
@@ -100,7 +107,6 @@ try:
         if check1 and check2 :
         
             Message = METHOD + " sip:" + DIRECCION + " SIP/2.0\r\n" # En DIRECCION de invite va el destinatario
-            Message = Message + '\r\n'
         else:
             print ("Usage: direction not valid")
 
@@ -115,7 +121,7 @@ try:
             Message = METHOD + " sip:" + DIRECCION + " SIP/2.0\r\n" # En DIRECCION de invite va el destinatario
             
             # añadir SDP del INVITE
-            Message = Message + + 'Expires: ' + str(EXPIRES) + '\r\n\r\n'
+            Message = Message + + 'Expires: ' + str(EXPIRES) + '\r\n'
             
             
         else:
@@ -123,16 +129,7 @@ try:
         
         # para conseguir mi nombre hay que sacarlo del ua1 o ua2 
 
-    dic_labels = Handler.get_labels()
-    print dic_labels
-    SERVER = dic_labels["uaserver_ip"]
-    PORT = int(dic_labels["uaserver_puerto"])
-    print "Servidor " + str(SERVER) + " y puerto " + str(PORT)
-    LINE = ""
-    my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    my_socket.connect((SERVER, PORT))
-    my_socket.send(LINE + '\r\n')
+    my_socket.send(Message + '\r\n')    #borrado un '\r\n' puede que falle
     data = my_socket.recv(1024)
     print "Enviando: " + LINE
     print "Recibido:", data
