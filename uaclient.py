@@ -31,6 +31,8 @@ if __name__=="__main__":
     print dic_labels
     SERVER = dic_labels["uaserver_ip"]
     PORT = int(dic_labels["uaserver_puerto"])
+    NAME = dic_labels["account_username"]
+    IP = dic_labels["uaserver_ip"]
     print "Servidor " + str(SERVER) + " y puerto " + str(PORT)
     my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -54,7 +56,7 @@ try:
             # añadir SDP del INVITE
 
             Message = Message + "Content-Type: application/sdp \r\nv=0 \r\n"
-            Message = Message + "o= " + MI_NOMBRE + MI_IP + "\r\n"
+            Message = Message + "o= " + NAME + IP + "\r\n"
             Message = Message + "s= misesion \r\nt=0 \r\nm=audio 23032 RTP\r\n"
             Message = Message + + '\r\n'
             

@@ -45,10 +45,14 @@ class XMLHandler(ContentHandler):
             label = key_wanted + "_" + atribute
             if label in self.labels:
                 self.labels[label] = attrs.get(atribute, "")
-                
+                if label == "uaserver_ip" and self.labels[label] == "":
+                    self.labels[label] = "127.0.0.1"#IP por defecto si es vacia
+                    
                 print "Encuentro un atributo ~~~~~~~~~~~~~~" + atribute
                 print "Guardo de el ===========" + self.labels[label]
-
+        if self.labels["regproxy_ip"] == "":
+            print "Usage Error: xml file hasn't proxy ip value"
+            sys.exit()
         dic_atributes = self.labels
 
     def get_tags(self):
