@@ -50,10 +50,13 @@ try:
         check2 = DIRECTION.find(".")
         if check1 and check2 :
             Message = METHOD + " sip:" + DIRECCION + " SIP/2.0\r\n" # En DIRECCION de invite va el destinatario
-            
+
             # añadir SDP del INVITE
+
+            Message = Message + "Content-Type: application/sdp \r\nv=0 \r\n"
+            Message = Message + "o= " + MI_NOMBRE + MI_IP + "\r\n"
+            Message = Message + "s= misesion \r\nt=0 \r\nm=audio 23032 RTP\r\n"
             Message = Message + + '\r\n'
-            
             
         else:
             print ("Usage: direction not valid")
