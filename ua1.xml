@@ -5,5 +5,5 @@
 <rtpaudio puerto= "6565"/>
 <regproxy ip="128.0.0.1" puerto="9996"/>
 <log path="hola"/>
-<audio path="quetal"/>
+<audio path="audio.mp3"/>
 </config>

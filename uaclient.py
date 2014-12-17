@@ -33,6 +33,7 @@ if __name__=="__main__":
     PORT = int(dic_labels["uaserver_puerto"])
     NAME = dic_labels["account_username"]
     IP = dic_labels["uaserver_ip"]
+    AUDIO_PORT = dic_labels["rtpaudio_puerto"]
     print "Servidor " + str(SERVER) + " y puerto " + str(PORT)
     my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -51,27 +52,23 @@ try:
         check1 = DIRECTION.find("@")
         check2 = DIRECTION.find(".")
         if check1 and check2 :
-            Message = METHOD + " sip:" + DIRECCION + " SIP/2.0\r\n" # En DIRECCION de invite va el destinatario
+            Message = METHOD + " sip:" + DIRECTION + " SIP/2.0\r\n"
+            Message = Message + "Content-Type: application/sdp \r\n\r\n"
+            Message = Message + "v=0 \r\no= " + NAME + IP + "\r\n"
+            Message = Message + "s= misesion \r\nt=0 \r\n"
+            Message = Message + "m=audio "+ AUDIO_PORT + " RTP\r\n"
 
-            # añadir SDP del INVITE
-
-            Message = Message + "Content-Type: application/sdp \r\nv=0 \r\n"
-            Message = Message + "o= " + NAME + IP + "\r\n"
-            Message = Message + "s= misesion \r\nt=0 \r\nm=audio 23032 RTP\r\n"
-            Message = Message + + '\r\n'
-            
         else:
             print ("Usage: direction not valid")
 
-
-    elif METHOD == "BYE":
+    elif METHOD == "BYE":      #se envia automaticamente al terminar el audio?
 
         DIRECTION = OPTION
         check1 = DIRECTION.find("@")
         check2 = DIRECTION.find(".")
         if check1 and check2 :
         
-            Message = METHOD + " sip:" + DIRECCION + " SIP/2.0\r\n" # En DIRECCION de invite va el destinatario
+            Message = METHOD + " sip:" + DIRECTION + " SIP/2.0\r\n"
         else:
             print ("Usage: direction not valid")
 
@@ -83,17 +80,16 @@ try:
         check1 = DIRECTION.find("@")
         check2 = DIRECTION.find(".")
         if check1 and check2 :
-            Message = METHOD + " sip:" + DIRECCION + " SIP/2.0\r\n" # En DIRECCION de invite va el destinatario
+            Message = METHOD + " sip:" + DIRECTION + " SIP/2.0\r\n"
             
             # añadir SDP del INVITE
             Message = Message + + 'Expires: ' + str(EXPIRES) + '\r\n'
-            
-            
+
         else:
             print ("Usage: direction not valid")
         
         # para conseguir mi nombre hay que sacarlo del ua1 o ua2 
-
+    NICK = dic_labels["account_username"]
     my_socket.send(Message + '\r\n')    #borrado un '\r\n' puede que falle
     data = my_socket.recv(1024)
     print "Enviando: " + Message

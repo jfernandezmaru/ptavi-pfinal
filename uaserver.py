@@ -15,7 +15,6 @@ from xml.sax.handler import ContentHandler
 
 class XMLHandler(ContentHandler):
 
-    
     def __init__(self):
 
         self.labels={"account_username":"", "account_passwd":"",
@@ -40,19 +39,14 @@ class XMLHandler(ContentHandler):
                 break
 
         for atribute in self.atributes:
-        
             print "###################" + atribute
             label = key_wanted + "_" + atribute
             if label in self.labels:
                 self.labels[label] = attrs.get(atribute, "")
                 if label == "uaserver_ip" and self.labels[label] == "":
                     self.labels[label] = "127.0.0.1"#IP por defecto si es vacia
-                    
                 print "Encuentro un atributo ~~~~~~~~~~~~~~" + atribute
                 print "Guardo de el ===========" + self.labels[label]
-        if self.labels["regproxy_ip"] == "":
-            print "Usage Error: xml file hasn't proxy ip value"
-            sys.exit()
         dic_atributes = self.labels
 
     def get_tags(self):
@@ -60,7 +54,6 @@ class XMLHandler(ContentHandler):
         
     def get_labels(self):
         return self.labels
-
 
 class SIPHandler(SocketServer.DatagramRequestHandler):
     """
@@ -77,37 +70,34 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                 print "El cliente nos manda " + line
                 check1 = line.find("sip:")
                 check2 = line.find("@")
-                check3 = line.find("SIP")
-                check4 = line.find("/2.0")
-                if check1 >= 0 and check2 >= 0 and check3 >= 0 and check4 >= 0:
+                check3 = line.find("SIP/2.0")
 
+                if check1 >= 0 and check2 >= 0 and check3 >= 0:
                     lista = line.split(" ")
                     Metodo = lista[0]
                     IP_Cliente = str(self.client_address[0])
                     # Comprobamos el método
                     if Metodo == "INVITE":
-
                         message = "SIP/2.0 100 Trying\r\n\r\n"
                         message = message + "SIP/2.0 180 Ringing\r\n\r\n"
-                        message = message + "SIP/2.0 200 OK\r\n\r\n" 
+                        message = message + "SIP/2.0 200 OK\r\n\r\n"
+                        
                         #INCLUIR SDP CON CABECERAS
+                        
                         self.wfile.write(message)
                     elif Metodo == "ACK":
-
                         os.system("chmod 777 mp32rtp")
                         Packet = "./mp32rtp -i " + IP_Cliente + " -p 23032 <"
+                        AUDIO = dic_labels["audio_path"]
                         Packet = Packet + AUDIO
                         os.system(Packet)
                     elif Metodo == "BYE":
-
                         self.wfile.write("SIP/2.0 200 OK\r\n\r\n")
                         print "Cliente " + IP_Cliente + " cierra la conexión"
                     else:
-
                         self.wfile.write("SIP/2.0 405\
                          Method Not Allowed\r\n\r\n")
                 else:
-
                     self.wfile.write("SIP/2.0 400 Bad Request\r\n")
             break
 
@@ -127,6 +117,9 @@ if __name__ == "__main__":
     parser.parse(open(FICH))
     dic_labels = Handler.get_labels()
     print dic_labels
+    if dic_labels["regproxy_ip"] == "":
+        print "Usage Error: xml file hasn't proxy ip value"
+        sys.exit()
     SERVER = dic_labels["uaserver_ip"]
     PORT = int(dic_labels["uaserver_puerto"])
     print "Servidor " + str(SERVER) + " y puerto " + str(PORT)
