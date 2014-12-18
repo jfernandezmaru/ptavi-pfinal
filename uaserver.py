@@ -35,18 +35,18 @@ class XMLHandler(ContentHandler):
         for count in range(len(all_labels)):    #quiero que count sea número
             if label == all_labels[count][0:3]:
                 key_wanted = all_labels[count].split("_")[0]
-                print "@@@@@@@@@@@@@@@@@@@@@@@" + key_wanted
+                #print "@@@@@@@@@@@@@@@@@@@@@@@" + key_wanted
                 break
 
         for atribute in self.atributes:
-            print "###################" + atribute
+            #print "###################" + atribute
             label = key_wanted + "_" + atribute
             if label in self.labels:
                 self.labels[label] = attrs.get(atribute, "")
                 if label == "uaserver_ip" and self.labels[label] == "":
                     self.labels[label] = "127.0.0.1"#IP por defecto si es vacia
-                print "Encuentro un atributo ~~~~~~~~~~~~~~" + atribute
-                print "Guardo de el ===========" + self.labels[label]
+                #print "Encuentro un atributo ~~~~~~~~~~~~~~" + atribute
+                #print "Guardo de el ===========" + self.labels[label]
         dic_atributes = self.labels
 
     def get_tags(self):
@@ -67,7 +67,7 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                 break
             else:
                 # Comprobamos el mensaje recibido del cliente
-                print "El cliente nos manda " + line
+                print "INFORMATION: El cliente nos manda " + line
                 check1 = line.find("sip:")
                 check2 = line.find("@")
                 check3 = line.find("SIP/2.0")
@@ -78,16 +78,23 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                     IP_Cliente = str(self.client_address[0])
                     # Comprobamos el método
                     if Metodo == "INVITE":
-                        message = "SIP/2.0 100 Trying\r\n\r\n"
-                        message = message + "SIP/2.0 180 Ringing\r\n\r\n"
-                        message = message + "SIP/2.0 200 OK\r\n\r\n"
+                        Message = "SIP/2.0 100 Trying\r\n\r\n"
+                        Message = Message + "SIP/2.0 180 Ringing\r\n\r\n"
+                        Message = Message + "SIP/2.0 200 OK\r\n\r\n"
                         
-                        #INCLUIR SDP CON CABECERAS
+                        #INCLUIR SDP CON CABECERAS sobre MI para el otro UA
+                        Message = Message + "Content-Type: application/sdp\r\n"
+                        Message = Message + "\r\nv=0\r\n"
+                        Message = Message + "o=" + NAME + " " + IP + "\r\n"
+                        Message = Message + "s=mysession \r\nt=0 \r\n"
+                        Message = Message + "m=audio "+ AUDIO_PORT + " RTP\r\n" 
+                        self.wfile.write(Message)
                         
-                        self.wfile.write(message)
                     elif Metodo == "ACK":
                         os.system("chmod 777 mp32rtp")
-                        Packet = "./mp32rtp -i " + IP_Cliente + " -p 23032 <"
+                        Packet = "./mp32rtp -i " + IP_Cliente + " -p "
+                        RTP_PORT = dic_labels["rtpaudio_puerto"]
+                        Packet = Packet +  RTP_PORT + " < "
                         AUDIO = dic_labels["audio_path"]
                         Packet = Packet + AUDIO
                         os.system(Packet)
@@ -116,16 +123,16 @@ if __name__ == "__main__":
     parser.setContentHandler(Handler)
     parser.parse(open(FICH))
     dic_labels = Handler.get_labels()
-    print dic_labels
+    #print dic_labels
     if dic_labels["regproxy_ip"] == "":
         print "Usage Error: xml file hasn't proxy ip value"
         sys.exit()
     SERVER = dic_labels["uaserver_ip"]
     PORT = int(dic_labels["uaserver_puerto"])
+    NAME = dic_labels["account_username"]
+    IP = dic_labels["uaserver_ip"]
+    AUDIO_PORT = dic_labels["rtpaudio_puerto"]
     print "Servidor " + str(SERVER) + " y puerto " + str(PORT)
-    
-
-    
     # Creamos servidor de SIP y escuchamos
     #SERVER Y PORT ESTAN EN EL FICHERO XML
     serv = SocketServer.UDPServer((SERVER, PORT), SIPHandler)

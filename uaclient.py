@@ -28,13 +28,13 @@ if __name__=="__main__":
     parser.setContentHandler(Handler)
     parser.parse(open(FICH))
     dic_labels = Handler.get_labels()
-    print dic_labels
+    #print dic_labels
     SERVER = dic_labels["uaserver_ip"]
     PORT = int(dic_labels["uaserver_puerto"])
     NAME = dic_labels["account_username"]
     IP = dic_labels["uaserver_ip"]
     AUDIO_PORT = dic_labels["rtpaudio_puerto"]
-    print "Servidor " + str(SERVER) + " y puerto " + str(PORT)
+    print "\r\nServidor " + str(SERVER) + " y puerto " + str(PORT) + "\r\n\r\n"
     my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     my_socket.connect((SERVER, PORT))
@@ -54,34 +54,34 @@ try:
         if check1 and check2 :
             Message = METHOD + " sip:" + DIRECTION + " SIP/2.0\r\n"
             Message = Message + "Content-Type: application/sdp \r\n\r\n"
-            Message = Message + "v=0 \r\no= " + NAME + IP + "\r\n"
-            Message = Message + "s= misesion \r\nt=0 \r\n"
+            Message = Message + "v=0 \r\no=" + NAME + " " + IP + "\r\n"
+            Message = Message + "s=misesion \r\nt=0 \r\n"
             Message = Message + "m=audio "+ AUDIO_PORT + " RTP\r\n"
 
         else:
             print ("Usage: direction not valid")
 
-    elif METHOD == "BYE":      #se envia automaticamente al terminar el audio?
+    elif METHOD == "BYE":
 
         DIRECTION = OPTION
         check1 = DIRECTION.find("@")
         check2 = DIRECTION.find(".")
         if check1 and check2 :
-        
+
             Message = METHOD + " sip:" + DIRECTION + " SIP/2.0\r\n"
         else:
             print ("Usage: direction not valid")
 
     elif METHOD == "REGISTER":
-    
+
         EXPIRES = OPTION
-        
+
         DIRECTION = OPTION
         check1 = DIRECTION.find("@")
         check2 = DIRECTION.find(".")
         if check1 and check2 :
             Message = METHOD + " sip:" + DIRECTION + " SIP/2.0\r\n"
-            
+
             # añadir SDP del INVITE
             Message = Message + + 'Expires: ' + str(EXPIRES) + '\r\n'
 
@@ -92,8 +92,8 @@ try:
     NICK = dic_labels["account_username"]
     my_socket.send(Message + '\r\n')    #borrado un '\r\n' puede que falle
     data = my_socket.recv(1024)
-    print "Enviando: " + Message
-    print "Recibido:", data
+    print "SENDING: " + Message
+    print "RECEIVING:", data
     processed_data = data.split('\r\n\r\n')
     # Si recibimos trying Ringing y OK asentimos con ACK
 
@@ -103,12 +103,18 @@ try:
 
         LINE = 'ACK' + " sip:" + NICK + "@" + SERVER + " SIP/2.0\r\n"
         my_socket.send(LINE + '\r\n')
-        data = my_socket.recv(1024)
-        print "Terminando socket..."
+        print processed_data[3]
+        RTP_SEND_PORT = processed_data[3].split("m=audio ")[1].split(" RTP")[0]
+        if RTP_SEND_PORT == "":
+            my_socket.send("INVALID SDP" + '\r\n')
+            my_socket.close()
+        else 
+            data = my_socket.recv(1024)
+            print "Ending socket..."
 
-        # Cerramos todo
-        my_socket.close()
-        print "Fin."
+            # Cerramos todo
+            my_socket.close()
+        print "END."
 
 except socket.error:
     print "Error: No server listening at " + SERVER + " port " + str(PORT)
