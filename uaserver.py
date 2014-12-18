@@ -85,13 +85,12 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                         Message = "SIP/2.0 100 Trying\r\n\r\n"
                         Message = Message + "SIP/2.0 180 Ringing\r\n\r\n"
                         Message = Message + "SIP/2.0 200 OK\r\n\r\n"
-                        #INCLUIR SDP CON CABECERAS sobre MI para el otro UA
                         Message = Message + "Content-Type: application/sdp\r\n"
                         Message = Message + "\r\nv=0\r\n"
                         Message = Message + "o=" + NAME + " " + IP + "\r\n"
                         Message = Message + "s=mysession \r\nt=0 \r\n"
                         Message = Message + "m=audio "+ AUDIO_PORT + " RTP\r\n"
-                        if not RTP_SEND_P == "" # Necesario para ahorrar \t
+                        if not RTP_SEND_P == "": #Asi no tabulamos lo de encima
                             self.wfile.write(Message)
                         
                     elif Metodo == "ACK":

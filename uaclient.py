@@ -110,6 +110,7 @@ try:
             my_socket.close()
         else:
         """
+        print "--- Receiving RTP directly from other UserAgent --- \r\n"
         data = my_socket.recv(1024)
         print "Ending socket..."
         my_socket.close()
