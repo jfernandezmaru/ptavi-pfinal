@@ -103,17 +103,16 @@ try:
 
         LINE = 'ACK' + " sip:" + NICK + "@" + SERVER + " SIP/2.0\r\n"
         my_socket.send(LINE + '\r\n')
-        print processed_data[3]
-        RTP_SEND_PORT = processed_data[3].split("m=audio ")[1].split(" RTP")[0]
+        """  AQUI NO ENVIAMOS RTP ????
+        RTP_SEND_PORT = processed_data[4].split("m=audio ")[1].split(" RTP")[0]
         if RTP_SEND_PORT == "":
             my_socket.send("INVALID SDP" + '\r\n')
             my_socket.close()
-        else 
-            data = my_socket.recv(1024)
-            print "Ending socket..."
-
-            # Cerramos todo
-            my_socket.close()
+        else:
+        """
+        data = my_socket.recv(1024)
+        print "Ending socket..."
+        my_socket.close()
         print "END."
 
 except socket.error:

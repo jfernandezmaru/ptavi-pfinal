@@ -67,7 +67,7 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                 break
             else:
                 # Comprobamos el mensaje recibido del cliente
-                print "INFORMATION: El cliente nos manda " + line
+                print "INFORMATION: The client send us " + line
                 check1 = line.find("sip:")
                 check2 = line.find("@")
                 check3 = line.find("SIP/2.0")
@@ -78,17 +78,21 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                     IP_Cliente = str(self.client_address[0])
                     # Comprobamos el método
                     if Metodo == "INVITE":
+                        #Sacar puerto de RTP cliente para enviar ahí el audio
+                        RTP_SEND_P = line.split('m=audio ')[1].split(" RTP")[0]
+                        if RTP_SEND_P == "":
+                            self.wfile.write("INVALID SDP" + '\r\n')
                         Message = "SIP/2.0 100 Trying\r\n\r\n"
                         Message = Message + "SIP/2.0 180 Ringing\r\n\r\n"
                         Message = Message + "SIP/2.0 200 OK\r\n\r\n"
-                        
                         #INCLUIR SDP CON CABECERAS sobre MI para el otro UA
                         Message = Message + "Content-Type: application/sdp\r\n"
                         Message = Message + "\r\nv=0\r\n"
                         Message = Message + "o=" + NAME + " " + IP + "\r\n"
                         Message = Message + "s=mysession \r\nt=0 \r\n"
-                        Message = Message + "m=audio "+ AUDIO_PORT + " RTP\r\n" 
-                        self.wfile.write(Message)
+                        Message = Message + "m=audio "+ AUDIO_PORT + " RTP\r\n"
+                        if not RTP_SEND_P == "" # Necesario para ahorrar \t
+                            self.wfile.write(Message)
                         
                     elif Metodo == "ACK":
                         os.system("chmod 777 mp32rtp")
@@ -100,7 +104,7 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                         os.system(Packet)
                     elif Metodo == "BYE":
                         self.wfile.write("SIP/2.0 200 OK\r\n\r\n")
-                        print "Cliente " + IP_Cliente + " cierra la conexión"
+                        print "The client " + IP_Cliente + " end the conexion"
                     else:
                         self.wfile.write("SIP/2.0 405\
                          Method Not Allowed\r\n\r\n")
