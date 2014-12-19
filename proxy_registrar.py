@@ -6,7 +6,48 @@ Clase (y programa principal) para un servidor Register SIP
 """
 import SocketServer
 import sys
+import os
 import time
+from xml.sax import make_parser
+from xml.sax.handler import ContentHandler
+
+
+class XMLHandler_PROXY(ContentHandler):
+
+    def __init__(self):
+
+        self.labels={"server_name":"", "server_ip":"",
+            "server_puerto":"","database_path":"","database_passwdpath":"",
+            "log_path":""}   
+
+        self.atributes=["name", "ip", "puerto", "path", "passwdpath"]
+
+    def startElement(self, name, attrs):
+
+        dic={}
+        label = name[0:3]
+        all_labels = self.labels.keys()
+        key_wanted = ""
+        for count in range(len(all_labels)):    #quiero que count sea número
+            if label == all_labels[count][0:3]:
+                key_wanted = all_labels[count].split("_")[0]
+                #print "@@@@@@@@@@@@@@@@@@@@@@@" + key_wanted
+                break
+
+        for atribute in self.atributes:
+            #print "###################" + atribute
+            label = key_wanted + "_" + atribute
+            if label in self.labels:
+                self.labels[label] = attrs.get(atribute, "")
+                #print "Encuentro un atributo ~~~~~~~~~~~~~~" + atribute
+                #print "Guardo de el ===========" + self.labels[label]
+        dic_atributes = self.labels
+
+    def get_tags(self):
+        return self.labels.keys()
+        
+    def get_labels(self):
+        return self.labels
 
 
 class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
@@ -81,6 +122,40 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
             if not line:
                 break
 
+
+if __name__ == "__main__":
+
+    try:
+        FICH = sys.argv[1]
+        if not os.access(sys.argv[1], os.F_OK):
+            print "Usage: the file doesn't exist"
+            sys.exit()
+    except ValueError:
+        print "Usage: python proxy_registrar.py config"
+
+    parser = make_parser()
+    Handler = XMLHandler_PROXY()
+    parser.setContentHandler(Handler)
+    parser.parse(open(FICH))
+    dic_labels = Handler.get_labels()
+    print dic_labels
+    IP = dic_labels["server_ip"]
+    PORT = int(dic_labels["server_puerto"])
+    NAME = dic_labels["server_name"]
+    if IP == "" or PORT == "" or NAME == "":
+        print "Usage Error: xml file need too much proxy values"
+        sys.exit()
+    phrase = "\r\nStarting Server Proxy/Registrar " + NAME + " listening at "
+    print phrase + str(IP) + " port " + str(PORT)
+    # Creamos servidor de SIP y escuchamos
+    #SERVER Y PORT ESTAN EN EL FICHERO XML
+    serv = SocketServer.UDPServer((IP, PORT), SIPRegisterHandler)
+    serv.serve_forever()
+
+
+
+"""
+
 if __name__ == "__main__":
     # Creamos un diccionario de clientes vacio, servidor de eco y escuchamos
     Dic_clients = {}
@@ -88,3 +163,5 @@ if __name__ == "__main__":
     serv = SocketServer.UDPServer(("", PORT), SIPRegisterHandler)
     print "Lanzando servidor UDP de eco..."
     serv.serve_forever()
+    
+"""
