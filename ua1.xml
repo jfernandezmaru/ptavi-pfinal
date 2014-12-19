@@ -1,6 +1,6 @@
 
 <config>
-<accout username="Martinez" passwd="tutiplen"/>
+<accout username="Martinez" passwd="pleno"/>
 <uaserver ip="127.0.0.1" puerto="6969"/>
 <rtpaudio puerto= "6565"/>
 <regproxy ip="127.0.0.1" puerto="9996"/>
