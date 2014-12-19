@@ -28,19 +28,17 @@ class XMLHandler_PROXY(ContentHandler):
         label = name[0:3]
         all_labels = self.labels.keys()
         key_wanted = ""
-        for count in range(len(all_labels)):    #quiero que count sea número
+        for count in range(len(all_labels)):
             if label == all_labels[count][0:3]:
                 key_wanted = all_labels[count].split("_")[0]
-                #print "@@@@@@@@@@@@@@@@@@@@@@@" + key_wanted
                 break
 
         for atribute in self.atributes:
-            #print "###################" + atribute
             label = key_wanted + "_" + atribute
             if label in self.labels:
                 self.labels[label] = attrs.get(atribute, "")
-                #print "Encuentro un atributo ~~~~~~~~~~~~~~" + atribute
-                #print "Guardo de el ===========" + self.labels[label]
+                if label == "server_ip" and self.labels[label] == "":
+                    self.labels[label] = "127.0.0.1"#IP por defecto si es vacia
         dic_atributes = self.labels
 
     def get_tags(self):
@@ -59,8 +57,9 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
         Método reescribir el fichero con los datos del diccionario,
         revisando previamente si expiró el tiempo de alguno de los clientes
         """
-        fich = open("registered.txt", "w")
-        fich.write("User" + "\t" + "IP" + "\t" + "Expires" + "\n")
+        fich = open("registered.txt", "w")  #con permiso de escritura de momento
+        phrase = "User" + "\t" + "IP" + "\t"+ "Port" "\t" + "Registered"
+        fich.write(phrase + "Expires" + "\n")
         now = time.time()
         keys = Dic_clients.keys()
         for element in keys:
@@ -69,6 +68,7 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                 exp = Dic_clients[element][1]
                 expire = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(exp))
                 fich.write(element + "\t" + str(addr) + "\t" + expire + "\n")
+                                            # | REVISAR HEMOS AÑADIDO CAMPO REGISTERED ARRIBA
             else:
                 address = Dic_clients[element][0]
                 del Dic_clients[element]
@@ -132,7 +132,6 @@ if __name__ == "__main__":
             sys.exit()
     except ValueError:
         print "Usage: python proxy_registrar.py config"
-
     parser = make_parser()
     Handler = XMLHandler_PROXY()
     parser.setContentHandler(Handler)
@@ -142,13 +141,11 @@ if __name__ == "__main__":
     IP = dic_labels["server_ip"]
     PORT = int(dic_labels["server_puerto"])
     NAME = dic_labels["server_name"]
-    if IP == "" or PORT == "" or NAME == "":
+    if PORT == "" or NAME == "":
         print "Usage Error: xml file need too much proxy values"
         sys.exit()
     phrase = "\r\nStarting Server Proxy/Registrar " + NAME + " listening at "
     print phrase + str(IP) + " port " + str(PORT)
-    # Creamos servidor de SIP y escuchamos
-    #SERVER Y PORT ESTAN EN EL FICHERO XML
     serv = SocketServer.UDPServer((IP, PORT), SIPRegisterHandler)
     serv.serve_forever()
 
