@@ -29,18 +29,19 @@ if __name__=="__main__":
     parser.parse(open(FICH))
     dic_labels = Handler.get_labels()
     #print dic_labels
-    SERVER = dic_labels["uaserver_ip"]
-    PORT = int(dic_labels["uaserver_puerto"])
+    IP_PROXY = dic_labels["regproxy_ip"]
+    PORT_PROXY = int(dic_labels["regproxy_puerto"])
     NAME = dic_labels["account_username"]
     IP = dic_labels["uaserver_ip"]
+    PORT = int (dic_labels["uaserver_puerto"])
     AUDIO_PORT = dic_labels["rtpaudio_puerto"]
-    print "\r\nServidor " + str(SERVER) + " y puerto " + str(PORT) + "\r\n\r\n"
+    phrase = "\r\nStarting a client: Server " + str(IP_PROXY) + " port " 
+    print phrase + str(PORT_PROXY) + "\r\n\r\n"
     my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    my_socket.connect((SERVER, PORT))
+    my_socket.connect((IP, PORT))   # HAY QUE PONER LA DEL PROXY CUANDO NO FALLE UA
 
 try:
-
     # $python uaclient.py config metodo opción
 
     METHOD = sys.argv[2].upper()
@@ -117,7 +118,7 @@ try:
         print "END."
 
 except socket.error:
-    print "Error: No server listening at " + SERVER + " port " + str(PORT)
+    print "Error: No server listening at " + IP_PROXY + " port " + str(PORT_PROXY)
 except ValueError:
     print "Usage: python server.py IP port audio_file"
 

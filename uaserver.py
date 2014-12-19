@@ -97,10 +97,10 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                         os.system("chmod 777 mp32rtp")
                         Packet = "./mp32rtp -i " + IP_Cliente + " -p "
                         RTP_PORT = dic_labels["rtpaudio_puerto"]
-                        Packet = Packet +  RTP_PORT + " < "
+                        Packet = Packet +  RTP_SEND_P + " < "
                         AUDIO = dic_labels["audio_path"]
                         Packet = Packet + AUDIO
-                        os.system(Packet)
+                        self.wfile.write(os.system(Packet))
                     elif Metodo == "BYE":
                         self.wfile.write("SIP/2.0 200 OK\r\n\r\n")
                         print "The client " + IP_Cliente + " end the conexion"
@@ -135,7 +135,7 @@ if __name__ == "__main__":
     NAME = dic_labels["account_username"]
     IP = dic_labels["uaserver_ip"]
     AUDIO_PORT = dic_labels["rtpaudio_puerto"]
-    print "Servidor " + str(SERVER) + " y puerto " + str(PORT)
+    print "\r\nStarting Server at: " + str(SERVER) + " port " + str(PORT)
     # Creamos servidor de SIP y escuchamos
     #SERVER Y PORT ESTAN EN EL FICHERO XML
     serv = SocketServer.UDPServer((SERVER, PORT), SIPHandler)
