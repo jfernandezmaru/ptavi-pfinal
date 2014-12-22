@@ -96,8 +96,8 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                     check3 = line.find("SIP/2.0")
                     if check1 >= 0 and check2 >= 0 and check3 >= 0:
                         lista = line.split(" ")
-                        Metodo = lista[0]
-                        IP_Cliente = str(self.client_address[0])
+                        Metodo = lista[0].upper()
+                        IP_Cliente = str(self.client_address[0])  #<-----COMPROBAR
                         # Comprobamos el método
                         if Metodo == "INVITE":
                             #Sacar puerto de RTP cliente para enviar ahí el audio
@@ -115,7 +115,21 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                             if not RTP_SEND_P == "": #Asi no tabulamos lo de encima
                                 self.wfile.write(Message)
                             
+                        elif Metodo == "REGISTER":
+                            #guardar cliente en el fichero
+                            """REGISTER sip:leonard@bigbang.org:1234 SIP/2.0
+                            Expires: 3600"""
+                            try:
+                                User = line.split(":")[1]
+                                Port = line.split(":")[2].split(" ")[0]
+                                Expires = line.split("Expires: ")[1]
+                                self.wfile.write("SIP/2.0 200 OK\r\n\r\n")
+                            except ValueError:
+                                self.wfile.write("SIP/2.0 400 Bad Request\r\n\r\n")
+
                         elif Metodo == "ACK":
+                            
+                            #enviar ACK al otro cliente con este permiso para RTP
                             os.system("chmod 777 mp32rtp")
                             Packet = "./mp32rtp -i " + IP_Cliente + " -p "
                             RTP_PORT = dic_labels["rtpaudio_puerto"]

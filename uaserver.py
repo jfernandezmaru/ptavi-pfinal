@@ -74,7 +74,7 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
 
                 if check1 >= 0 and check2 >= 0 and check3 >= 0:
                     lista = line.split(" ")
-                    Metodo = lista[0]
+                    Metodo = lista[0].upper()
                     IP_Cliente = str(self.client_address[0])
                     # Comprobamos el método
                     if Metodo == "INVITE":
@@ -100,7 +100,9 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                         Packet = Packet +  RTP_SEND_P + " < "
                         AUDIO = dic_labels["audio_path"]
                         Packet = Packet + AUDIO
-                        self.wfile.write(os.system(Packet))
+                        self.wfile.write(os.system(Packet)) 
+                        # OJO estamos enviando al proxy no al cliente hay que cambiarlo (REDES)!!!!
+                        
                     elif Metodo == "BYE":
                         self.wfile.write("SIP/2.0 200 OK\r\n\r\n")
                         print "The client " + IP_Cliente + " end the conexion"
