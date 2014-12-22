@@ -63,7 +63,7 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
         while 1:
             line = self.rfile.read()
             if not line:
-                self.wfile.write("SIP/2.0 400 Bad Request\r\n")
+                self.wfile.write("SIP/2.0 400 Bad Request\r\n\r\n")
                 break
             else:
                 # Comprobamos el mensaje recibido del cliente
@@ -91,7 +91,7 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                         Message = Message + "s=mysession \r\nt=0 \r\n"
                         Message = Message + "m=audio "+ AUDIO_PORT + " RTP\r\n"
                         if not RTP_SEND_P == "": #Asi no tabulamos lo de encima
-                            self.wfile.write(Message)
+                            self.wfile.write(Message + "\r\n")
                         
                     elif Metodo == "ACK":
                         os.system("chmod 777 mp32rtp")
@@ -110,7 +110,7 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                         self.wfile.write("SIP/2.0 405\
                          Method Not Allowed\r\n\r\n")
                 else:
-                    self.wfile.write("SIP/2.0 400 Bad Request\r\n")
+                    self.wfile.write("SIP/2.0 400 Bad Request\r\n\r\n")
             break
 
 if __name__ == "__main__":

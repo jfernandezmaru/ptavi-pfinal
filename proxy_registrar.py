@@ -49,22 +49,26 @@ class XMLHandler_PROXY(ContentHandler):
 
     def register2file(self, Dic_clients):
         """
-        Método reescribir el fichero con los datos del diccionario,
-        revisando previamente si expiró el tiempo de alguno de los clientes
+        Método reescribir el fichero con los datos del diccionario
         """
+        #Dic_clients[User] = (IP, Port, now, Expires)
         direccion_fichero = dic_labels["database_path"]
-        fich = open(direccion_fichero, "w")  #con permiso de escritura de momento
+        fich = open(direccion_fichero, "w") # TENEMOS LA DIRECCION NO EL FICHERO, permiso escritura
         phrase = "User" + "\t" + "IP" + "\t"+ "Port" "\t" + "Registered"
         fich.write(phrase + "Expires" + "\n")
         now = time.time()
         keys = Dic_clients.keys()
         for element in keys:
-            if Dic_clients[element][1] > now:
-                addr = Dic_clients[element][0]
-                exp = Dic_clients[element][1]
-                expire = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(exp))
-                fich.write(element + "\t" + str(addr) + "\t" + expire + "\n")
-                                            # | REVISAR HEMOS AÑADIDO CAMPO REGISTERED ARRIBA
+            if Dic_clients[element][3] > now:
+                address = Dic_clients[element][0]
+                port = Dic_clients[element][1]
+                registered = Dic_clients[element][2]
+                expires = Dic_clients[element][3]
+                expires = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(exp))
+                registered = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(reg))
+                phrase = element + "\t" + str(address) + "\t" + str(Port) + "\t"
+                fich.write(phrase + "\t" + registered + "\t" + expires + "\n")
+
             else:
                 address = Dic_clients[element][0]
                 del Dic_clients[element]
@@ -82,86 +86,77 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
         Método para manejar las peticiones de los clientes y
         actuar en funcion de su contenido
         """
-
-           while 1:
+        while 1:
             line = self.rfile.read()     
             if not line:
-                    self.wfile.write("SIP/2.0 400 Bad Request\r\n")
-                    break
-                else:
-                    # Comprobamos el mensaje recibido del cliente
-                    print "PROXY-INFO: The client send us " + line
-                    check1 = line.find("sip:")
-                    check2 = line.find("@")
-                    check3 = line.find("SIP/2.0")
-                    if check1 >= 0 and check2 >= 0 and check3 >= 0:
-                        lista = line.split(" ")
-                        Metodo = lista[0].upper()
-                        IP_Cliente = str(self.client_address[0])  #<-----COMPROBAR
-                        # Comprobamos el método
-                        if Metodo == "INVITE":
-                            #Sacar puerto de RTP cliente para enviar ahí el audio
-                            RTP_SEND_P = line.split('m=audio ')[1].split(" RTP")[0]
-                            if RTP_SEND_P == "":
-                                self.wfile.write("INVALID SDP" + '\r\n')
-                            Message = "SIP/2.0 100 Trying\r\n\r\n"
-                            Message = Message + "SIP/2.0 180 Ringing\r\n\r\n"
-                            Message = Message + "SIP/2.0 200 OK\r\n\r\n"
-                            Message = Message + "Content-Type: application/sdp\r\n"
-                            Message = Message + "\r\nv=0\r\n"
-                            Message = Message + "o=" + NAME + " " + IP + "\r\n"
-                            Message = Message + "s=mysession \r\nt=0 \r\n"
-                            Message = Message + "m=audio "+ AUDIO_PORT + " RTP\r\n"
-                            if not RTP_SEND_P == "": #Asi no tabulamos lo de encima
-                                self.wfile.write(Message)
-                            
-                        elif Metodo == "REGISTER":
-                            #guardar cliente en el fichero
-                            """REGISTER sip:leonard@bigbang.org:1234 SIP/2.0
-                            Expires: 3600"""
-                            try:
-                                User = line.split(":")[1]
-                                Port = line.split(":")[2].split(" ")[0]
-                                Expires = line.split("Expires: ")[1]
-                                self.wfile.write("SIP/2.0 200 OK\r\n\r\n")
-                            except ValueError:
-                                self.wfile.write("SIP/2.0 400 Bad Request\r\n\r\n")
-
-                        elif Metodo == "ACK":
-                            
-                            #enviar ACK al otro cliente con este permiso para RTP
-                            os.system("chmod 777 mp32rtp")
-                            Packet = "./mp32rtp -i " + IP_Cliente + " -p "
-                            RTP_PORT = dic_labels["rtpaudio_puerto"]
-                            Packet = Packet +  RTP_SEND_P + " < "
-                            AUDIO = dic_labels["audio_path"]
-                            Packet = Packet + AUDIO
-                            self.wfile.write(os.system(Packet))
-                        elif Metodo == "BYE":
-                            self.wfile.write("SIP/2.0 200 OK\r\n\r\n")
-                            print "The client " + IP_Cliente + " end the conexion"
-                        else:
-                            self.wfile.write("SIP/2.0 405\
-                             Method Not Allowed\r\n\r\n")
-                    else:
-                        self.wfile.write("SIP/2.0 400 Bad Request\r\n")
+                self.wfile.write("SIP/2.0 400 Bad Request\r\n")
                 break
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
+            else:
+                # Comprobamos el mensaje recibido del cliente
+                print "PROXY-INFO: The client send us " + line
+                check1 = line.find("sip:")
+                check2 = line.find("@")
+                check3 = line.find("SIP/2.0")
+                if check1 >= 0 and check2 >= 0 and check3 >= 0:
+                    lista = line.split(" ")
+                    Metodo = lista[0].upper()
+                    IP_Cliente = str(self.client_address[0])  #<-----COMPROBAR
+                    # Comprobamos el método
+                    if Metodo == "INVITE":
+                        #Sacar puerto de RTP cliente para enviar ahí el audio
+                        RTP_SEND_P = line.split('m=audio ')[1].split(" RTP")[0]
+                        if RTP_SEND_P == "":
+                            self.wfile.write("INVALID SDP" + '\r\n')
+                        Message = "SIP/2.0 100 Trying\r\n\r\n"
+                        Message = Message + "SIP/2.0 180 Ringing\r\n\r\n"
+                        Message = Message + "SIP/2.0 200 OK\r\n\r\n"
+                        Message = Message + "Content-Type: application/sdp\r\n"
+                        Message = Message + "\r\nv=0\r\n"
+                        Message = Message + "o=" + NAME + " " + IP + "\r\n"
+                        Message = Message + "s=mysession \r\nt=0 \r\n"
+                        Message = Message + "m=audio "+ AUDIO_PORT + " RTP\r\n"
+                        if not RTP_SEND_P == "": #Asi no tabulamos lo de encima
+                            self.wfile.write(Message)
+                        
+                    elif Metodo == "REGISTER":
+                        """REGISTER sip:leonard@bigbang.org:1234 SIP/2.0
+                        Expires: 3600"""
+                        try:
+                            User = line.split(":")[1]
+                            Port = line.split(":")[2].split(" ")[0]
+                            Expires = line.split("Expires: ")[1]
+                            self.wfile.write("SIP/2.0 200 OK\r\n\r\n")
+                        except ValueError:
+                            self.wfile.write("SIP/2.0 400 Bad Request\r\n\r\n")
+                            
+                        #Guardar cliente en fichero
+                        #Direccion, IP, puerto, la fecha de registro y expires
+
+                        now = time.time()
+                        Expires = int(Expires) + now
+                        Dic_clients[User] = (IP, Port, now, Expires)
+                        
+                    elif Metodo == "ACK":
+                        
+                        #enviar ACK al otro cliente con este permiso para RTP
+                        os.system("chmod 777 mp32rtp")
+                        Packet = "./mp32rtp -i " + IP_Cliente + " -p "
+                        RTP_PORT = dic_labels["rtpaudio_puerto"]
+                        Packet = Packet +  RTP_SEND_P + " < "
+                        AUDIO = dic_labels["audio_path"]
+                        Packet = Packet + AUDIO
+                        self.wfile.write(os.system(Packet))
+                    elif Metodo == "BYE":
+                        self.wfile.write("SIP/2.0 200 OK\r\n\r\n")
+                        print "The client " + IP_Cliente + " end the conexion"
+                    else:
+                        self.wfile.write("SIP/2.0 405\
+                         Method Not Allowed\r\n\r\n")
+                else:
+                    self.wfile.write("SIP/2.0 400 Bad Request\r\n")
+            break
+    
+
         
         
         
@@ -209,12 +204,7 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                 break
                 
                 
-             """   
-                
-                
-                
-                
-                
+             """       
            
 
 
@@ -232,6 +222,7 @@ if __name__ == "__main__":
     parser.setContentHandler(Handler)
     parser.parse(open(FICH))
     dic_labels = Handler.get_labels()
+    dic_clients = {}
     print dic_labels
     IP = dic_labels["server_ip"]
     PORT = int(dic_labels["server_puerto"])
@@ -244,10 +235,7 @@ if __name__ == "__main__":
     serv = SocketServer.UDPServer((IP, PORT), SIPRegisterHandler)
     serv.serve_forever()
 
-
-
 """
-
 if __name__ == "__main__":
     # Creamos un diccionario de clientes vacio, servidor de eco y escuchamos
     Dic_clients = {}
