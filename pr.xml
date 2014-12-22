@@ -2,5 +2,5 @@
 <config>
 <server name="MaruganSever" ip="127.0.0.1" puerto="9996"/>
 <database path="database.txt" passwdpath=""/>
-<log path="log.log"/>
+<log path="/home/Carpeta personal/ptavi/ptavi-pfinal/log_pr.txt"/>
 </config>

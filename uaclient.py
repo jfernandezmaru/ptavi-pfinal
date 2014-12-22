@@ -39,7 +39,7 @@ if __name__=="__main__":
     print phrase + str(PORT_PROXY) + "\r\n\r\n"
     my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    my_socket.connect((IP, PORT))   # HAY QUE PONER LA DEL PROXY CUANDO NO FALLE UA
+    my_socket.connect((IP_PROXY, PORT_PROXY))   # HAY QUE PONER LA DEL PROXY CUANDO NO FALLE UA
 
 try:
     # $python uaclient.py config metodo opción
@@ -75,22 +75,21 @@ try:
 
     elif METHOD == "REGISTER":
 
-        EXPIRES = OPTION
-
         DIRECTION = OPTION
         check1 = DIRECTION.find("@")
         check2 = DIRECTION.find(".")
-        if check1 and check2 :
-            Message = METHOD + " sip:" + DIRECTION + " SIP/2.0\r\n"
-
-            # añadir SDP del INVITE
-            Message = Message + + 'Expires: ' + str(EXPIRES) + '\r\n'
-
+        if check1 and check2:
+            try:
+                expires = int(input("Expires: "))
+                Message = METHOD + " sip:" + DIRECTION + " SIP/2.0\r\n"
+                Message = Message + 'Expires: ' + (str(expires)) + '\r\n'
+            except ValueError:
+                print ("Usage: expires not valid")
+                sys.exit()
         else:
             print ("Usage: direction not valid")
-        
-        # para conseguir mi nombre hay que sacarlo del ua1 o ua2 
-    NICK = dic_labels["account_username"]
+
+    #NICK = dic_labels["account_username"]
     my_socket.send(Message + '\r\n')    #borrado un '\r\n' puede que falle
     data = my_socket.recv(1024)
     print "SENDING: " + Message
@@ -102,8 +101,11 @@ try:
        processed_data[1] == "SIP/2.0 180 Ringing" and\
        processed_data[2] == "SIP/2.0 200 OK":
 
-        LINE = 'ACK' + " sip:" + NICK + "@" + SERVER + " SIP/2.0\r\n"
+        name_and_IP = processed_data[3].split("o=")[1].split("s=")[0]
+        name_UA = name_and_IP.split(" ")[0]
+        LINE = 'ACK' + " sip:" + name_UA + " SIP/2.0\r\n"
         my_socket.send(LINE + '\r\n')
+        print LINE + "ENVIADO ACK"
         """  AQUI NO ENVIAMOS RTP ????
         RTP_SEND_PORT = processed_data[4].split("m=audio ")[1].split(" RTP")[0]
         if RTP_SEND_PORT == "":
