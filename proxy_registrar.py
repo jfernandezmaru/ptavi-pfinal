@@ -47,33 +47,35 @@ class XMLHandler_PROXY(ContentHandler):
     def get_labels(self):
         return self.labels
 
-    def register2file(self, Dic_clients):
+    def register2file(self, dic_clients):
         """
         Método reescribir el fichero con los datos del diccionario
         """
-        #Dic_clients[User] = (IP, Port, now, Expires)
-        direction_fich = dic_labels["database_path"]
-        """print os.access(direction_fich,"w")
-        print "proxy_registrar liea 57 problema con crear log" """
-        fich = open(direccion_fich, "w") # TENEMOS COMPROBACION DEL FICHERO, permiso escritura
+        #dic_clients[User] = (IP, Port, now, Expires)
+        database = dic_labels["database_path"]
+        # el path de fichero y musica es el archivo o la direccion??? supongo archivo
+        if database == "":
+            print "Empty database path in pr.xml"
+            sys.exit()
+        fich = open(database, "w") # TENEMOS COMPROBACION DEL FICHERO, permiso escritura
         phrase = "User" + "\t" + "IP" + "\t"+ "Port" "\t" + "Registered"
         fich.write(phrase + "Expires" + "\n")
         now = time.time()
-        keys = Dic_clients.keys()
+        keys = dic_clients.keys()
         for element in keys:
-            if Dic_clients[element][3] > now:
-                address = Dic_clients[element][0]
-                port = Dic_clients[element][1]
-                registered = Dic_clients[element][2]
-                expires = Dic_clients[element][3]
+            if dic_clients[element][3] > now:
+                address = dic_clients[element][0]
+                port = dic_clients[element][1]
+                registered = dic_clients[element][2]
+                expires = dic_clients[element][3]
                 expires = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(exp))
                 registered = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(reg))
                 phrase = element + "\t" + str(address) + "\t" + str(Port) + "\t"
                 fich.write(phrase + "\t" + registered + "\t" + expires + "\n")
 
             else:
-                address = Dic_clients[element][0]
-                #del Dic_clients[element]     ---Debemos borrar al cliente del fichero?
+                address = dic_clients[element][0]
+                #del dic_clients[element]     ---Debemos borrar al cliente del fichero?
                 print "Expiró el tiempo del cliente: (" + element,
                 print " , " + address + ")"
         fich.close()
@@ -102,7 +104,9 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                 if check1 >= 0 and check2 >= 0 and check3 >= 0:
                     lista = line.split(" ")
                     Metodo = lista[0].upper()
-                    IP_client = str(self.client_address[0])  #<-----COMPROBAR
+                    #IP_client = str(self.client_address[0]) 
+                    # | Desde donde nos ha enviado NO DONDE DEBEMOS ENVIAR OJO !!!
+                    
                     # Comprobamos el método
                     if Metodo == "INVITE":
                         """INVITE sip:penny@girlnextdoor.com SIP/2.0
@@ -113,8 +117,17 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                         t=0
                         m=audio 34543 RTP"""
                         receiver = line.split(" SIP/2.0")[0].split("sip:")[1]
+                        sender = line.split("s=")[0].split(" ")[1]
+                        print " recibido INVITE de " + sender + " para " + receiver
+                        if dic_clients[receiver] == "":
+                            self.wfile.write("SIP/2.0 404 User Not Found\r\n")
+                            break
+                        else:
+                            parameters = dic_clients[receiver]
+                            print parameters
+
                         #BUSCAR EN EL FICHERO LA DIRECCION DE ESTE UA                        
-                        Hola = Handler.register2file(dic_clients)
+                        #Hola = Handler.register2file(dic_clients)
                         
 
                     elif Metodo == "REGISTER":
@@ -133,7 +146,8 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
 
                         now = time.time()
                         Expires = int(Expires) + now
-                        Dic_clients[User] = (IP_client, Port, now, Expires)
+                        IP_client = "0.0.0.0"   #De momento hasta recibir un INVITE
+                        dic_clients[User] = (IP_client, Port, now, Expires)
                         
                     elif Metodo == "ACK":
                         
@@ -228,7 +242,7 @@ if __name__ == "__main__":
         print "Usage Error: xml file need too much proxy values"
         sys.exit()
     phrase = "\r\nStarting Server Proxy/Registrar " + NAME + " listening at "
-    print phrase + str(IP) + " port " + str(PORT)
+    print phrase + str(IP) + " port " + str(PORT) + "\r\n"
     serv = SocketServer.UDPServer((IP, PORT), SIPRegisterHandler)
     serv.serve_forever()
 

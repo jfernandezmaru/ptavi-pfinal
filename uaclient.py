@@ -35,8 +35,6 @@ if __name__=="__main__":
     IP = dic_labels["uaserver_ip"]
     PORT = int (dic_labels["uaserver_puerto"])
     AUDIO_PORT = dic_labels["rtpaudio_puerto"]
-    phrase = "\r\nStarting a client: Server " + str(IP_PROXY) + " port " 
-    print phrase + str(PORT_PROXY) + "\r\n\r\n"
     my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     my_socket.connect((IP_PROXY, PORT_PROXY))   # HAY QUE PONER LA DEL PROXY CUANDO NO FALLE UA
@@ -75,25 +73,21 @@ try:
 
     elif METHOD == "REGISTER":
 
-        DIRECTION = OPTION
-        check1 = DIRECTION.find("@")
-        check2 = DIRECTION.find(".")
-        if check1 and check2:
-            try:
-                expires = int(input("Expires: "))
-                Message = METHOD + " sip:" + DIRECTION + " SIP/2.0\r\n"
-                Message = Message + 'Expires: ' + (str(expires)) + '\r\n'
-            except ValueError:
-                print ("Usage: expires not valid")
-                sys.exit()
-        else:
-            print ("Usage: direction not valid")
+        try:
+            expires = int(OPTION)
+            Message = METHOD + " sip:" + NAME + ":" + str(PORT) + " SIP/2.0\r\n"
+            Message = Message + 'Expires: ' + str(expires) + '\r\n'
+        except ValueError:
+            print ("Usage: expires not valid")
+            sys.exit()
 
     #NICK = dic_labels["account_username"]
+    phrase = "\r\nStarting a client: IP " + str(IP) + " port " 
+    print phrase + str(PORT) + "\r\n"
     my_socket.send(Message + '\r\n')    #borrado un '\r\n' puede que falle
     data = my_socket.recv(1024)
-    print "SENDING: " + Message
-    print "RECEIVING:", data
+    print "\r\nSENDING: " + Message
+    print "\r\nRECEIVING:", data
     processed_data = data.split('\r\n\r\n')
     # Si recibimos trying Ringing y OK asentimos con ACK
 
