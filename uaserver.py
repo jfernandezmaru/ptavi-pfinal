@@ -55,8 +55,6 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
     """
         Clase de Servidor SIP
     """
-    #RTP_SEND_IP = "123.4.5.6"       #PROBLEMA AQUI SIEMPRE COJE ESTOS VALORES NO MODIFICA
-    #RTP_SEND_P = "8909"
     def handle(self):
         
         while 1:
@@ -74,7 +72,7 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                     lista = line.split(" ")
                     Metodo = lista[0].upper()
                     IP_Cliente = str(self.client_address[0])
-                    # Comprobamos el método
+
                     if Metodo == "INVITE":
                     
                         """INVITE sip:penny@girlnextdoor.com SIP/2.0
@@ -84,12 +82,12 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                         s=misesion
                         t=0
                         m=audio 34543 RTP"""
-                    
                         #Sacar puerto de RTP cliente para enviar ahí el audio PROBLEMA CON V. GLOBALES
                         RTP_SEND_P = line.split("m=audio ")[1].split(" RTP")[0]
                         RTP = line.split("o=")[1].split("s=")[0]
                         RTP_SEND_IP = RTP.split(" ")[1]
-                        print RTP_SEND_IP
+                        dic_labels["AUX_PORT"] = RTP_SEND_P
+                        dic_labels["AUX_IP"] = RTP_SEND_IP
                         if RTP_SEND_P == "":
                             self.wfile.write("INVALID SDP" + '\r\n')
                         Message = "SIP/2.0 200 OK\r\n\r\n"
@@ -102,16 +100,15 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                             self.wfile.write(Message + "\r\n")
                         
                     elif Metodo == "ACK":
-                    
+                        
+                        print "----------------------" + dic_labels["AUX_IP"] + dic_labels["AUX_PORT"]
                         os.system("chmod 777 mp32rtp")
-                        Packet = "./mp32rtp -i " + RTP_SEND_IP + " -p "
-                        Packet = Packet +  RTP_SEND_P + " < "
+                        Packet = "./mp32rtp -i " + dic_labels["AUX_IP"] + " -p "
+                        Packet = Packet + dic_labels["AUX_PORT"] + " < "
                         AUDIO = dic_labels["audio_path"]
                         Packet = Packet + AUDIO
                         os.system(Packet)
-                        print RTP_SEND_IP
-                        print RTP_SEND_P
-                        print "AUDIO ENVIADO"
+                        print "AUDIO WAS SENDED"
                         """my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
                         my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
                         my_socket.connect((self.RTP_SEND_IP, int(self.RTP_SEND_P)))
@@ -137,12 +134,13 @@ if __name__ == "__main__":
     except ValueError:
         print "Usage: python uaserver.py config"
 
+    #RTP_SEND_IP = "123.4.5.6"
+    #RTP_SEND_P = "8909"
     parser = make_parser()
     Handler = XMLHandler()
     parser.setContentHandler(Handler)
     parser.parse(open(FICH))
     dic_labels = Handler.get_labels()
-    #print dic_labels
     if dic_labels["regproxy_ip"] == "":
         print "Usage Error: xml file hasn't proxy ip value"
         sys.exit()
@@ -151,11 +149,8 @@ if __name__ == "__main__":
     NAME = dic_labels["account_username"]
     IP = dic_labels["uaserver_ip"]
     AUDIO_PORT = dic_labels["rtpaudio_puerto"]
-    RTP_SEND_IP = "123.4.5.6"
-    RTP_SEND_P = "8909"
     print "\r\nStarting Server at: " + str(SERVER) + " port " + str(PORT)
     #Creamos servidor de SIP y escuchamos
-    #SERVER Y PORT ESTAN EN EL FICHERO XML
     serv = SocketServer.UDPServer((SERVER, PORT), SIPHandler)
     serv.serve_forever()
 
