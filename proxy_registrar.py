@@ -5,6 +5,7 @@
 Clase (y programa principal) para un servidor Register SIP
 """
 import SocketServer
+import socket
 import sys
 import os
 import time
@@ -104,9 +105,8 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                 if check1 >= 0 and check2 >= 0 and check3 >= 0:
                     lista = line.split(" ")
                     Metodo = lista[0].upper()
-                    #IP_client = str(self.client_address[0]) 
-                    # | Desde donde nos ha enviado NO DONDE DEBEMOS ENVIAR OJO !!!
-                    
+                    IP_client = str(self.client_address[0]) 
+                    #En la practica se especifica que ambos UA client server estan en la misma maquina
                     # Comprobamos el método
                     if Metodo == "INVITE":
                         """INVITE sip:penny@girlnextdoor.com SIP/2.0
@@ -117,19 +117,22 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                         t=0
                         m=audio 34543 RTP"""
                         receiver = line.split(" SIP/2.0")[0].split("sip:")[1]
-                        sender = line.split("s=")[0].split(" ")[1]
-                        print " recibido INVITE de " + sender + " para " + receiver
+                        send = line.split("s=")[0].split("o=")[1].split(" ")[0]
+                        print "Recibido INVITE de " + send + " para " + receiver
                         if dic_clients[receiver] == "":
                             self.wfile.write("SIP/2.0 404 User Not Found\r\n")
                             break
                         else:
                             parameters = dic_clients[receiver]
                             print parameters
-
-                        #BUSCAR EN EL FICHERO LA DIRECCION DE ESTE UA                        
-                        #Hola = Handler.register2file(dic_clients)
                         
-
+                        my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                        my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                        
+                        print parameters[0]
+                        print parameters[1]
+                        my_socket.connect((parameters[0], int(parameters[1])))
+                        
                     elif Metodo == "REGISTER":
                         """REGISTER sip:leonard@bigbang.org:1234 SIP/2.0
                         Expires: 3600"""
@@ -139,14 +142,11 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                             Expires = line.split("Expires: ")[1]
                             self.wfile.write("SIP/2.0 200 OK\r\n\r\n")
                         except ValueError:
-                            self.wfile.write("SIP/2.0 400 Bad Request\r\n\r\n")
-                            
+                            self.wfile.write("SIP/2.0 400 Bad Request\r\n\r\n")   
                         #Guardar cliente en fichero
                         #Direccion, IP, puerto, la fecha de registro y expires
-
                         now = time.time()
                         Expires = int(Expires) + now
-                        IP_client = "0.0.0.0"   #De momento hasta recibir un INVITE
                         dic_clients[User] = (IP_client, Port, now, Expires)
                         
                     elif Metodo == "ACK":
@@ -168,9 +168,7 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                 else:
                     self.wfile.write("SIP/2.0 400 Bad Request\r\n")
             break
-            
-        
-        
+
         """
         
         # Escribe dirección y puerto del cliente (de tupla client_address)

@@ -37,7 +37,7 @@ if __name__=="__main__":
     AUDIO_PORT = dic_labels["rtpaudio_puerto"]
     my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    my_socket.connect((IP_PROXY, PORT_PROXY))   # HAY QUE PONER LA DEL PROXY CUANDO NO FALLE UA
+    my_socket.connect((IP_PROXY, PORT_PROXY))
 
 try:
     # $python uaclient.py config metodo opción
