@@ -100,15 +100,8 @@ try:
         LINE = 'ACK' + " sip:" + name_UA + " SIP/2.0\r\n"
         my_socket.send(LINE + '\r\n')
         print LINE + "ENVIADO ACK"
-        """  AQUI NO ENVIAMOS RTP ????
-        RTP_SEND_PORT = processed_data[4].split("m=audio ")[1].split(" RTP")[0]
-        if RTP_SEND_PORT == "":
-            my_socket.send("INVALID SDP" + '\r\n')
-            my_socket.close()
-        else:
-        """
         print "--- Receiving RTP directly from other UserAgent --- \r\n"
-        data = my_socket.recv(1024)
+        #data = my_socket.recv(1024)
         print "Ending socket..."
         my_socket.close()
         print "END."

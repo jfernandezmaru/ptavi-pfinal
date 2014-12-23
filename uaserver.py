@@ -3,6 +3,7 @@
 # Practica 6 Javier Fernandez Marugan  PTAVI
 
 import SocketServer
+import socket
 import sys
 import os
 from xml.sax import make_parser
@@ -54,6 +55,8 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
     """
         Clase de Servidor SIP
     """
+    RTP_SEND_IP = "126.0.0.0"
+    RTP_SEND_P = "9999"
     def handle(self):
         while 1:
             line = self.rfile.read()
@@ -72,9 +75,20 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                     IP_Cliente = str(self.client_address[0])
                     # Comprobamos el método
                     if Metodo == "INVITE":
+                    
+                        """INVITE sip:penny@girlnextdoor.com SIP/2.0
+                        Content-Type: application/sdp
+                        v=0
+                        o=leonard@bigbang.org 127.0.0.1
+                        s=misesion
+                        t=0
+                        m=audio 34543 RTP"""
+                    
                         #Sacar puerto de RTP cliente para enviar ahí el audio
-                        RTP_SEND_P = line.split('m=audio ')[1].split(" RTP")[0]
-                        if RTP_SEND_P == "":
+                        self.RTP_SEND_P = line.split("m=audio ")[1].split(" RTP")[0]
+                        RTP = line.split("o=")[1].split("s=")[0]
+                        self.RTP_SEND_IP = RTP.split(" ")[1]
+                        if self.RTP_SEND_P == "":
                             self.wfile.write("INVALID SDP" + '\r\n')
                         Message = "SIP/2.0 200 OK\r\n\r\n"
                         Message = Message + "Content-Type: application/sdp\r\n"
@@ -82,18 +96,23 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                         Message = Message + "o=" + NAME + " " + IP + "\r\n"
                         Message = Message + "s=mysession \r\nt=0 \r\n"
                         Message = Message + "m=audio "+ AUDIO_PORT + " RTP\r\n"
-                        if not RTP_SEND_P == "": #Asi no tabulamos lo de encima
+                        if not self.RTP_SEND_P == "": #Asi no tabulamos lo de encima
                             self.wfile.write(Message + "\r\n")
                         
                     elif Metodo == "ACK":
+                    
                         os.system("chmod 777 mp32rtp")
-                        Packet = "./mp32rtp -i " + IP_Cliente + " -p "
-                        RTP_PORT = dic_labels["rtpaudio_puerto"]
-                        Packet = Packet +  RTP_SEND_P + " < "
+                        Packet = "./mp32rtp -i " + self.RTP_SEND_IP + " -p "
+                        Packet = Packet +  self.RTP_SEND_P + " < "
                         AUDIO = dic_labels["audio_path"]
                         Packet = Packet + AUDIO
-                        self.wfile.write(os.system(Packet)) 
-                        # OJO estamos enviando al proxy no al cliente hay que cambiarlo (REDES)!!!!
+                        os.system(Packet)
+                        print "AUDIO ENVIADO"
+                        
+                        """my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                        my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                        my_socket.connect((self.RTP_SEND_IP, int(self.RTP_SEND_P)))
+                        my_socket.send(Packet)"""
                         
                     elif Metodo == "BYE":
                         self.wfile.write("SIP/2.0 200 OK\r\n\r\n")

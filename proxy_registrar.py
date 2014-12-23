@@ -118,6 +118,7 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                         m=audio 34543 RTP"""
                         receiver = line.split(" SIP/2.0")[0].split("sip:")[1]
                         send = line.split("s=")[0].split("o=")[1].split(" ")[0]
+                        #RTP_SEND_P = line.split("m=audio ")[1].split(" ").[0]
                         print "Recibido INVITE de " + send + " para " + receiver
                         if dic_clients[receiver] == "":
                             self.wfile.write("SIP/2.0 404 User Not Found\r\n")
@@ -130,6 +131,7 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                         my_socket.connect((parameters[0], int(parameters[1])))
                         my_socket.send(line)  #reenviamos al destinatario
                         data = my_socket.recv(1024)
+                        my_socket.close()
                         processed_data = data.split('\r\n\r\n') 
                         if processed_data[0] != "SIP/2.0 200 OK" or\
                            processed_data[1] == "":      #comprobamos OK + SDP
@@ -138,6 +140,7 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                         mess = "SIP/2.0 100 Trying\r\n\r\n"
                         mess = mess + "SIP/2.0 180 Ringing\r\n\r\n" + data
                         self.wfile.write(mess)
+                        
                         
                     elif Metodo == "REGISTER":
                         """REGISTER sip:leonard@bigbang.org:1234 SIP/2.0
@@ -156,15 +159,20 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                         dic_clients[User] = (IP_client, Port, now, Expires)
                         
                     elif Metodo == "ACK":
-                        
+                        #ACK sip:receptor SIP/2.0
                         #enviar ACK al otro cliente con este permiso para RTP
-                        os.system("chmod 777 mp32rtp")
-                        Packet = "./mp32rtp -i " + IP_client + " -p "
-                        RTP_PORT = dic_labels["rtpaudio_puerto"]
-                        Packet = Packet +  RTP_SEND_P + " < "
-                        AUDIO = dic_labels["audio_path"]
-                        Packet = Packet + AUDIO
-                        self.wfile.write(os.system(Packet))
+                        receiver = line.split("sip:")[1].split(" ")[0]
+                        if dic_clients[receiver] == "":
+                            self.wfile.write("SIP/2.0 404 User Not Found\r\n")
+                            break
+                        else:
+                            parameters = dic_clients[receiver]
+                            print parameters
+                        my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                        my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                        my_socket.connect((parameters[0], int(parameters[1])))
+                        my_socket.send(line)  #reenviamos al destinatario
+                        
                     elif Metodo == "BYE":
                         self.wfile.write("SIP/2.0 200 OK\r\n\r\n")
                         print "The client " + IP_cliente + " end the conexion"
