@@ -94,8 +94,8 @@ try:
     if processed_data[0] == "SIP/2.0 100 Trying" and\
        processed_data[1] == "SIP/2.0 180 Ringing" and\
        processed_data[2] == "SIP/2.0 200 OK":
-
-        name_and_IP = processed_data[3].split("o=")[1].split("s=")[0]
+        print "RECIBIDO trying ringing OK mas..." + processed_data[4]
+        name_and_IP = processed_data[4].split("o=")[1].split("s=")[0]
         name_UA = name_and_IP.split(" ")[0]
         LINE = 'ACK' + " sip:" + name_UA + " SIP/2.0\r\n"
         my_socket.send(LINE + '\r\n')

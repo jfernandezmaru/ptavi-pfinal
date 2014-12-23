@@ -32,21 +32,16 @@ class XMLHandler(ContentHandler):
         label = name[0:3]
         all_labels = self.labels.keys()
         key_wanted = ""
-        for count in range(len(all_labels)):    #quiero que count sea número
+        for count in range(len(all_labels)):
             if label == all_labels[count][0:3]:
                 key_wanted = all_labels[count].split("_")[0]
-                #print "@@@@@@@@@@@@@@@@@@@@@@@" + key_wanted
                 break
-
         for atribute in self.atributes:
-            #print "###################" + atribute
             label = key_wanted + "_" + atribute
             if label in self.labels:
                 self.labels[label] = attrs.get(atribute, "")
                 if label == "uaserver_ip" and self.labels[label] == "":
                     self.labels[label] = "127.0.0.1"#IP por defecto si es vacia
-                #print "Encuentro un atributo ~~~~~~~~~~~~~~" + atribute
-                #print "Guardo de el ===========" + self.labels[label]
         dic_atributes = self.labels
 
     def get_tags(self):
@@ -71,7 +66,6 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                 check1 = line.find("sip:")
                 check2 = line.find("@")
                 check3 = line.find("SIP/2.0")
-
                 if check1 >= 0 and check2 >= 0 and check3 >= 0:
                     lista = line.split(" ")
                     Metodo = lista[0].upper()
@@ -82,9 +76,7 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                         RTP_SEND_P = line.split('m=audio ')[1].split(" RTP")[0]
                         if RTP_SEND_P == "":
                             self.wfile.write("INVALID SDP" + '\r\n')
-                        Message = "SIP/2.0 100 Trying\r\n\r\n"
-                        Message = Message + "SIP/2.0 180 Ringing\r\n\r\n"
-                        Message = Message + "SIP/2.0 200 OK\r\n\r\n"
+                        Message = "SIP/2.0 200 OK\r\n\r\n"
                         Message = Message + "Content-Type: application/sdp\r\n"
                         Message = Message + "\r\nv=0\r\n"
                         Message = Message + "o=" + NAME + " " + IP + "\r\n"

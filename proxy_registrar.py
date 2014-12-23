@@ -125,13 +125,19 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                         else:
                             parameters = dic_clients[receiver]
                             print parameters
-                        
                         my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
                         my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-                        
-                        print parameters[0]
-                        print parameters[1]
                         my_socket.connect((parameters[0], int(parameters[1])))
+                        my_socket.send(line)  #reenviamos al destinatario
+                        data = my_socket.recv(1024)
+                        processed_data = data.split('\r\n\r\n') 
+                        if processed_data[0] != "SIP/2.0 200 OK" or\
+                           processed_data[1] == "":      #comprobamos OK + SDP
+                            my_socket.send("SIP/2.0 400 Bad Request")
+                            break
+                        mess = "SIP/2.0 100 Trying\r\n\r\n"
+                        mess = mess + "SIP/2.0 180 Ringing\r\n\r\n" + data
+                        self.wfile.write(mess)
                         
                     elif Metodo == "REGISTER":
                         """REGISTER sip:leonard@bigbang.org:1234 SIP/2.0
