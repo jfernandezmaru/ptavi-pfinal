@@ -159,7 +159,7 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                         
                         #enviar ACK al otro cliente con este permiso para RTP
                         os.system("chmod 777 mp32rtp")
-                        Packet = "./mp32rtp -i " + IP_cliente + " -p "
+                        Packet = "./mp32rtp -i " + IP_client + " -p "
                         RTP_PORT = dic_labels["rtpaudio_puerto"]
                         Packet = Packet +  RTP_SEND_P + " < "
                         AUDIO = dic_labels["audio_path"]
