@@ -55,9 +55,10 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
     """
         Clase de Servidor SIP
     """
-    RTP_SEND_IP = "126.0.0.0"
-    RTP_SEND_P = "9999"
+    #RTP_SEND_IP = "123.4.5.6"       #PROBLEMA AQUI SIEMPRE COJE ESTOS VALORES NO MODIFICA
+    #RTP_SEND_P = "8909"
     def handle(self):
+        
         while 1:
             line = self.rfile.read()
             if not line:
@@ -84,11 +85,12 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                         t=0
                         m=audio 34543 RTP"""
                     
-                        #Sacar puerto de RTP cliente para enviar ahí el audio
-                        self.RTP_SEND_P = line.split("m=audio ")[1].split(" RTP")[0]
+                        #Sacar puerto de RTP cliente para enviar ahí el audio PROBLEMA CON V. GLOBALES
+                        RTP_SEND_P = line.split("m=audio ")[1].split(" RTP")[0]
                         RTP = line.split("o=")[1].split("s=")[0]
-                        self.RTP_SEND_IP = RTP.split(" ")[1]
-                        if self.RTP_SEND_P == "":
+                        RTP_SEND_IP = RTP.split(" ")[1]
+                        print RTP_SEND_IP
+                        if RTP_SEND_P == "":
                             self.wfile.write("INVALID SDP" + '\r\n')
                         Message = "SIP/2.0 200 OK\r\n\r\n"
                         Message = Message + "Content-Type: application/sdp\r\n"
@@ -96,19 +98,20 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                         Message = Message + "o=" + NAME + " " + IP + "\r\n"
                         Message = Message + "s=mysession \r\nt=0 \r\n"
                         Message = Message + "m=audio "+ AUDIO_PORT + " RTP\r\n"
-                        if not self.RTP_SEND_P == "": #Asi no tabulamos lo de encima
+                        if not RTP_SEND_P == "": #Asi no tabulamos lo de encima
                             self.wfile.write(Message + "\r\n")
                         
                     elif Metodo == "ACK":
                     
                         os.system("chmod 777 mp32rtp")
-                        Packet = "./mp32rtp -i " + self.RTP_SEND_IP + " -p "
-                        Packet = Packet +  self.RTP_SEND_P + " < "
+                        Packet = "./mp32rtp -i " + RTP_SEND_IP + " -p "
+                        Packet = Packet +  RTP_SEND_P + " < "
                         AUDIO = dic_labels["audio_path"]
                         Packet = Packet + AUDIO
                         os.system(Packet)
+                        print RTP_SEND_IP
+                        print RTP_SEND_P
                         print "AUDIO ENVIADO"
-                        
                         """my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
                         my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
                         my_socket.connect((self.RTP_SEND_IP, int(self.RTP_SEND_P)))
@@ -148,8 +151,10 @@ if __name__ == "__main__":
     NAME = dic_labels["account_username"]
     IP = dic_labels["uaserver_ip"]
     AUDIO_PORT = dic_labels["rtpaudio_puerto"]
+    RTP_SEND_IP = "123.4.5.6"
+    RTP_SEND_P = "8909"
     print "\r\nStarting Server at: " + str(SERVER) + " port " + str(PORT)
-    # Creamos servidor de SIP y escuchamos
+    #Creamos servidor de SIP y escuchamos
     #SERVER Y PORT ESTAN EN EL FICHERO XML
     serv = SocketServer.UDPServer((SERVER, PORT), SIPHandler)
     serv.serve_forever()
