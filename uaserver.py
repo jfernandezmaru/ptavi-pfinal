@@ -101,13 +101,20 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                         
                     elif Metodo == "ACK":
                         
-                        print "----------------------" + dic_labels["AUX_IP"] + dic_labels["AUX_PORT"]
+                        #print dic_labels["AUX_IP"] + dic_labels["AUX_PORT"]
                         os.system("chmod 777 mp32rtp")
+                        my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                        my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                        my_socket.connect((IP, int(AUDIO_PORT)))
+                        data = my_socket.recv(1024)
+                        my_socket.close()
+                        print "--- Receiving RTP directly from other UserAgent --- \r\n" 
                         Packet = "./mp32rtp -i " + dic_labels["AUX_IP"] + " -p "
                         Packet = Packet + dic_labels["AUX_PORT"] + " < "
                         AUDIO = dic_labels["audio_path"]
                         Packet = Packet + AUDIO
                         os.system(Packet)
+                        
                         print "AUDIO WAS SENDED"
                         """my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
                         my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
