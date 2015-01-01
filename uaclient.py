@@ -35,6 +35,7 @@ if __name__=="__main__":
     IP = dic_labels["uaserver_ip"]
     PORT = int (dic_labels["uaserver_puerto"])
     AUDIO_PORT = dic_labels["rtpaudio_puerto"]
+    LOG = dic_labels["log_path"]
     my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     my_socket.connect((IP_PROXY, PORT_PROXY))
@@ -45,6 +46,13 @@ try:
     METHOD = sys.argv[2].upper()
     OPTION = sys.argv[3]
     Message = ""
+    phrase = "\r\nStarting a client: IP " + str(IP) + " port " 
+    print phrase + str(PORT) + "\r\n"
+    if LOG == "":
+        print "Empty log path in xml"
+        sys.exit()
+    fich = open(log, "w")
+    fich.write("")
     if METHOD == "INVITE":
 
         DIRECTION = OPTION
@@ -80,10 +88,12 @@ try:
         except ValueError:
             print ("Usage: expires not valid")
             sys.exit()
+    else:
+        
+        print ("Usage: method not allowed")
+        sys.exit()
 
     #NICK = dic_labels["account_username"]
-    phrase = "\r\nStarting a client: IP " + str(IP) + " port " 
-    print phrase + str(PORT) + "\r\n"
     my_socket.send(Message + '\r\n')    #borrado un '\r\n' puede que falle
     data = my_socket.recv(1024)
     print "\r\nSENDING: " + Message

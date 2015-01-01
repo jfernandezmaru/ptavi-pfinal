@@ -1,7 +1,7 @@
 
 <config>
 <accout username="Martinez@gmail.com" passwd="pleno"/>
-<uaserver ip="192.168.1.43" puerto="6969"/>
+<uaserver ip="192.168.1.43" puerto="6565"/>
 <rtpaudio puerto= "6565"/>
 <regproxy ip="192.168.1.43" puerto="9996"/>
 <log path="log_ua1.txt"/>
