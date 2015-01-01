@@ -106,21 +106,26 @@ try:
         name_UA = name_and_IP.split(" ")[0]
         RTP_IP = name_and_IP.split(" ")[1]
         RTP_PORT = processed_data[4].split("audio ")[1].split(" ")[0]
+        print "#######################" + RTP_IP + "   " + RTP_PORT
         LINE = 'ACK' + " sip:" + name_UA + " SIP/2.0\r\n"
         print LINE + "ENVIADO ACK"
-        os.system("chmod 777 mp32rtp")
         my_socket.send(LINE + '\r\n')
-        my_socket.close()
-        Packet = "./mp32rtp -i " + RTP_IP + " -p "
-        Packet = Packet + RTP_PORT + " < "
-        AUDIO = dic_labels["audio_path"]
-        Packet = Packet + AUDIO
-        os.system(Packet)
+        my_socket.close()       # adelantamos aqui la escucha de RTP
+        os.system("chmod 777 mp32rtp")
         my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         my_socket.connect((IP, int(AUDIO_PORT)))
         data = my_socket.recv(1024)
-        print "--- Receiving RTP directly from other UserAgent --- \r\n"
+        print " --- Receiving RTP directly from other UserAgent --- \r\n"
+        print "1"
+        print "2"
+        Packet = "./mp32rtp -i " + RTP_IP + " -p "
+        Packet = Packet + RTP_PORT + " <"
+        AUDIO = dic_labels["audio_path"]
+        print AUDIO
+        Packet = Packet + AUDIO
+        os.system(Packet)
+        print "3"
         print "Ending socket..."
         my_socket.close()
         print "END."
