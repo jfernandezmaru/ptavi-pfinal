@@ -106,7 +106,7 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                     lista = line.split(" ")
                     Metodo = lista[0].upper()
                     IP_client = str(self.client_address[0]) 
-                    #En la practica se especifica que ambos UA client server estan en la misma maquina
+                    # En la practica se especifica que ambos UA client server estan en la misma maquina
                     # Comprobamos el método
                     if Metodo == "INVITE":
                         """INVITE sip:penny@girlnextdoor.com SIP/2.0
@@ -119,7 +119,7 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                         receiver = line.split(" SIP/2.0")[0].split("sip:")[1]
                         send = line.split("s=")[0].split("o=")[1].split(" ")[0]
                         #RTP_SEND_P = line.split("m=audio ")[1].split(" ").[0]
-                        print "Recibido INVITE de " + send + " para " + receiver
+                        print "Received INVITE from " + send + " to " + receiver
                         if dic_clients[receiver] == "":
                             self.wfile.write("SIP/2.0 404 User Not Found\r\n")
                             break
@@ -137,7 +137,7 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                            processed_data[1] == "":      #comprobamos OK + SDP
                             my_socket.send("SIP/2.0 400 Bad Request")
                             break
-                        my_socket.close()
+                        #my_socket.close()
                         mess = "SIP/2.0 100 Trying\r\n\r\n"
                         mess = mess + "SIP/2.0 180 Ringing\r\n\r\n" + data
                         self.wfile.write(mess)

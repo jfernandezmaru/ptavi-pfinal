@@ -70,11 +70,11 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                 check3 = line.find("SIP/2.0")
                 if check1 >= 0 and check2 >= 0 and check3 >= 0:
                     lista = line.split(" ")
-                    Metodo = lista[0].upper()
+                    Method = lista[0].upper()
+                    Auxiliar = lista[1].upper()
                     IP_Cliente = str(self.client_address[0])
 
-                    if Metodo == "INVITE":
-                    
+                    if Method == "INVITE":
                         """INVITE sip:penny@girlnextdoor.com SIP/2.0
                         Content-Type: application/sdp
                         v=0
@@ -98,20 +98,19 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                         Message = Message + "m=audio "+ AUDIO_PORT + " RTP\r\n"
                         if not RTP_SEND_P == "": #Asi no tabulamos lo de encima
                             self.wfile.write(Message + "\r\n")
-                        
-                    elif Metodo == "ACK":
+                        print "SENDING: " + Message
+                    elif Method == "ACK":
 
+                        data = my_socket.recv(1024)
                         os.system("chmod 777 mp32rtp")
                         #print dic_labels["AUX_IP"] + dic_labels["AUX_PORT"]
                         Packet = "./mp32rtp -i " + dic_labels["AUX_IP"] + " -p "
                         Packet = Packet + dic_labels["AUX_PORT"] + " < "
                         AUDIO = dic_labels["audio_path"]
+                        print "------ ENVIANDO " + AUDIO + " A " + dic_labels["AUX_IP"] +" "+ dic_labels["AUX_PORT"]
                         Packet = Packet + AUDIO
                         os.system(Packet)
-                        my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                        my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-                        my_socket.connect((IP, int(AUDIO_PORT)))
-                        data = my_socket.recv(1024)
+                        print "----- ESCUCHO EN " + str(IP) +" "+ str(AUDIO_PORT) 
                         my_socket.close()
                         print "--- Receiving RTP directly from other UserAgent --- \r\n"
                         
@@ -121,14 +120,52 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                         my_socket.connect((self.RTP_SEND_IP, int(self.RTP_SEND_P)))
                         my_socket.send(Packet)"""
                         
-                    elif Metodo == "BYE":
+                    elif Method == "BYE":
                         self.wfile.write("SIP/2.0 200 OK\r\n\r\n")
                         print "The client " + IP_Cliente + " end the conexion"
+
+                    elif Method == "SIP/2.0" and Auxiliar == "100": 
+                        # Si recibimos trying Ringing y OK asentimos con ACK
+                        processed_data = line.split('\r\n\r\n')
+                        print "RECEIVING" + processed_data
+                        if processed_data[0] == "SIP/2.0 100 Trying" and\
+                           processed_data[1] == "SIP/2.0 180 Ringing" and\
+                           processed_data[2] == "SIP/2.0 200 OK":
+                            print "RECEIVING" + processed_data[4]
+                            """INVITE sip:penny@girlnextdoor.com SIP/2.0
+                            Content-Type: application/sdp
+                            v=0
+                            o=leonard@bigbang.org 127.0.0.1
+                            s=misesion
+                            t=0
+                            m=audio 34543 RTP"""
+                            name_and_IP = processed_data[4].split("o=")[1].split("s=")[0]
+                            name_UA = name_and_IP.split(" ")[0]
+                            RTP_IP = name_and_IP.split(" ")[1]
+                            RTP_PORT = processed_data[4].split("audio ")[1].split(" ")[0]
+                            LINE = 'ACK' + " sip:" + name_UA + " SIP/2.0\r\n"
+                            print LINE + "ENVIADO ACK"
+                            self.wfile.write(LINE + '\r\n')
+                            os.system("chmod 777 mp32rtp")
+                            Packet = "./mp32rtp -i " + RTP_IP + " -p "
+                            Packet = Packet + RTP_PORT + " < "
+                            AUDIO = dic_labels["audio_path"]
+                            Packet = Packet + AUDIO
+                            print "##############Enviando "+ AUDIO +" a" + RTP_IP + "   " + RTP_PORT
+                            os.system(Packet)
+                            data = my_socket.recv(1024)
+                            print "3"
+                            print "Ending socket..."
+                            my_socket.close()
+                            print "END."
+                                   
+                        else:
+                            self.wfile.write("SIP/2.0 400 Bad Request\r\n\r\n")
+                    elif Auxiliar == "200":
+                        Auxiliar = Auxiliar
                     else:
                         self.wfile.write("SIP/2.0 405\
                          Method Not Allowed\r\n\r\n")
-                else:
-                    self.wfile.write("SIP/2.0 400 Bad Request\r\n\r\n")
             break
 
 if __name__ == "__main__":
@@ -141,8 +178,6 @@ if __name__ == "__main__":
     except ValueError:
         print "Usage: python uaserver.py config"
 
-    #RTP_SEND_IP = "123.4.5.6"
-    #RTP_SEND_P = "8909"
     parser = make_parser()
     Handler = XMLHandler()
     parser.setContentHandler(Handler)
