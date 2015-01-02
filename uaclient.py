@@ -104,7 +104,7 @@ try:
     
     
     processed_data = data.split('\r\n\r\n')
-    print "RECEIVING" + processed_data
+    print "RECEIVING" + str(processed_data)
     if processed_data[0] == "SIP/2.0 100 Trying" and\
        processed_data[1] == "SIP/2.0 180 Ringing" and\
        processed_data[2] == "SIP/2.0 200 OK":
@@ -128,20 +128,17 @@ try:
         Packet = Packet + RTP_PORT + " < "
         AUDIO = dic_labels["audio_path"]
         Packet = Packet + AUDIO
-        print "##############Enviando "+ AUDIO +" a" + RTP_IP + "   " + RTP_PORT
+        print "##############Enviando "+ AUDIO +" a " + RTP_IP + "   " + RTP_PORT
         os.system(Packet)
-        data = my_socket.recv(1024)
+        #data = my_socket.recv(1024)
     else:
-        self.wfile.write("SIP/2.0 400 Bad Request\r\n\r\n")
+        my_socket.send("SIP/2.0 400 Bad Request\r\n\r\n")
 
     print "3"
     print "Ending socket..."
     my_socket.close()
     print "END."
-    
-    
-    
-    
+
     
     """print "3"
     print "Ending socket..."
