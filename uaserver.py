@@ -124,7 +124,7 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                         self.wfile.write("SIP/2.0 200 OK\r\n\r\n")
                         print "The client " + IP_Cliente + " end the conexion"
 
-                    elif Method == "SIP/2.0" and Auxiliar == "100": 
+                    """ elif Method == "SIP/2.0" and Auxiliar == "100": 
                         # Si recibimos trying Ringing y OK asentimos con ACK
                         processed_data = line.split('\r\n\r\n')
                         print "RECEIVING" + processed_data
@@ -132,13 +132,13 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                            processed_data[1] == "SIP/2.0 180 Ringing" and\
                            processed_data[2] == "SIP/2.0 200 OK":
                             print "RECEIVING" + processed_data[4]
-                            """INVITE sip:penny@girlnextdoor.com SIP/2.0
+                            INVITE sip:penny@girlnextdoor.com SIP/2.0
                             Content-Type: application/sdp
                             v=0
                             o=leonard@bigbang.org 127.0.0.1
                             s=misesion
                             t=0
-                            m=audio 34543 RTP"""
+                            m=audio 34543 RTP
                             name_and_IP = processed_data[4].split("o=")[1].split("s=")[0]
                             name_UA = name_and_IP.split(" ")[0]
                             RTP_IP = name_and_IP.split(" ")[1]
@@ -157,10 +157,10 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                             print "3"
                             print "Ending socket..."
                             my_socket.close()
-                            print "END."
+                            print "END." 
                                    
                         else:
-                            self.wfile.write("SIP/2.0 400 Bad Request\r\n\r\n")
+                            self.wfile.write("SIP/2.0 400 Bad Request\r\n\r\n")"""
                     elif Auxiliar == "200":
                         Auxiliar = Auxiliar
                     else:

@@ -98,6 +98,51 @@ try:
     print "\r\nSENDING: " + Message
     data = my_socket.recv(1024)
     print "RECEIVING " + data
+    
+    
+    
+    
+    
+    processed_data = data.split('\r\n\r\n')
+    print "RECEIVING" + processed_data
+    if processed_data[0] == "SIP/2.0 100 Trying" and\
+       processed_data[1] == "SIP/2.0 180 Ringing" and\
+       processed_data[2] == "SIP/2.0 200 OK":
+        print "RECEIVING" + processed_data[4]
+        """ INVITE sip:penny@girlnextdoor.com SIP/2.0
+        Content-Type: application/sdp
+        v=0
+        o=leonard@bigbang.org 127.0.0.1
+        s=misesion
+        t=0
+        m=audio 34543 RTP """
+        name_and_IP = processed_data[4].split("o=")[1].split("s=")[0]
+        name_UA = name_and_IP.split(" ")[0]
+        RTP_IP = name_and_IP.split(" ")[1]
+        RTP_PORT = processed_data[4].split("audio ")[1].split(" ")[0]
+        LINE = 'ACK' + " sip:" + name_UA + " SIP/2.0\r\n"
+        print LINE + "ENVIADO ACK"
+        my_socket.send(LINE + '\r\n')
+        os.system("chmod 777 mp32rtp")
+        Packet = "./mp32rtp -i " + RTP_IP + " -p "
+        Packet = Packet + RTP_PORT + " < "
+        AUDIO = dic_labels["audio_path"]
+        Packet = Packet + AUDIO
+        print "##############Enviando "+ AUDIO +" a" + RTP_IP + "   " + RTP_PORT
+        os.system(Packet)
+        data = my_socket.recv(1024)
+    else:
+        self.wfile.write("SIP/2.0 400 Bad Request\r\n\r\n")
+
+    print "3"
+    print "Ending socket..."
+    my_socket.close()
+    print "END."
+    
+    
+    
+    
+    
     """print "3"
     print "Ending socket..."
     my_socket.close()
