@@ -96,6 +96,8 @@ try:
     #NICK = dic_labels["account_username"]
     my_socket.send(Message + '\r\n')    #borrado un '\r\n' puede que falle
     print "\r\nSENDING: " + Message
+    data = my_socket.recv(1024)
+    print "RECEIVING " + data
     """print "3"
     print "Ending socket..."
     my_socket.close()

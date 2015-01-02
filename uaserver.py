@@ -64,14 +64,14 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                 break
             else:
                 # Comprobamos el mensaje recibido del cliente
-                print "INFORMATION: The client send us " + line
+                print "INFORMATION: The proxy/registrar send us " + line
                 check1 = line.find("sip:")
                 check2 = line.find("@")
                 check3 = line.find("SIP/2.0")
                 if check1 >= 0 and check2 >= 0 and check3 >= 0:
                     lista = line.split(" ")
                     Method = lista[0].upper()
-                    Auxiliar = lista[1].upper()
+                    Auxiliar = lista[1]
                     IP_Cliente = str(self.client_address[0])
 
                     if Method == "INVITE":

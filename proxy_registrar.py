@@ -106,7 +106,7 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                     lista = line.split(" ")
                     Metodo = lista[0].upper()
                     IP_client = str(self.client_address[0]) 
-                    # En la practica se especifica que ambos UA client server estan en la misma maquina
+                    # La practica especifica que ambos UA client server estan en la misma maquina
                     # Comprobamos el método
                     if Metodo == "INVITE":
                         """INVITE sip:penny@girlnextdoor.com SIP/2.0
@@ -131,7 +131,6 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                         my_socket.connect((parameters[0], int(parameters[1])))
                         my_socket.send(line)  #reenviamos al destinatario
                         data = my_socket.recv(1024)
-
                         processed_data = data.split('\r\n\r\n') 
                         if processed_data[0] != "SIP/2.0 200 OK" or\
                            processed_data[1] == "":      #comprobamos OK + SDP
@@ -141,6 +140,7 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                         mess = "SIP/2.0 100 Trying\r\n\r\n"
                         mess = mess + "SIP/2.0 180 Ringing\r\n\r\n" + data
                         self.wfile.write(mess)
+                        print "SENDING "+ mess
                         
                     elif Metodo == "REGISTER":
                         """REGISTER sip:leonard@bigbang.org:1234 SIP/2.0
@@ -176,6 +176,7 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                     elif Metodo == "BYE":
                         self.wfile.write("SIP/2.0 200 OK\r\n\r\n")
                         print "The client " + IP_cliente + " end the conexion"
+
                     else:
                         self.wfile.write("SIP/2.0 405\
                          Method Not Allowed\r\n\r\n")
