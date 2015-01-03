@@ -8,6 +8,8 @@ Programa cliente que abre un socket a un servidor
 import socket
 import sys
 import os
+import datetime
+from datetime import date, datetime
 from uaserver import XMLHandler
 from xml.sax import make_parser
 from xml.sax.handler import ContentHandler
@@ -35,7 +37,6 @@ if __name__=="__main__":
     IP = dic_labels["uaserver_ip"]
     PORT = int (dic_labels["uaserver_puerto"])
     AUDIO_PORT = dic_labels["rtpaudio_puerto"]
-    LOG = dic_labels["log_path"]
     my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     my_socket.connect((IP_PROXY, PORT_PROXY))
@@ -48,11 +49,6 @@ try:
     Message = ""
     phrase = "\r\nStarting a client: IP " + str(IP) + " port " 
     print phrase + str(PORT) + "\r\n"
-    if LOG == "":
-        print "Empty log path in xml"
-        sys.exit()
-    fich = open(LOG, "w")
-    fich.write("")
     if METHOD == "INVITE":
 
         DIRECTION = OPTION
@@ -93,57 +89,58 @@ try:
         print ("Usage: method not allowed")
         sys.exit()
 
+    dt = datetime.now().strftime("%Y%m%d%H%M%S")
+
+    Handler.writer("Send", IP_PROXY, PORT_PROXY, Message)
     #NICK = dic_labels["account_username"]
-    my_socket.send(Message + '\r\n')    #borrado un '\r\n' puede que falle
+    my_socket.send(Message + '\r\n')
     print "\r\nSENDING: " + Message
     data = my_socket.recv(1024)
     print "RECEIVING " + data
-    
-    
-    
-    
-    
     processed_data = data.split('\r\n\r\n')
-    print "RECEIVING" + str(processed_data)
-    if processed_data[0] == "SIP/2.0 100 Trying" and\
-       processed_data[1] == "SIP/2.0 180 Ringing" and\
-       processed_data[2] == "SIP/2.0 200 OK":
-        print "RECEIVING" + processed_data[4]
-        """ INVITE sip:penny@girlnextdoor.com SIP/2.0
-        Content-Type: application/sdp
-        v=0
-        o=leonard@bigbang.org 127.0.0.1
-        s=misesion
-        t=0
-        m=audio 34543 RTP """
-        name_and_IP = processed_data[4].split("o=")[1].split("s=")[0]
-        name_UA = name_and_IP.split(" ")[0]
-        RTP_IP = name_and_IP.split(" ")[1]
-        RTP_PORT = processed_data[4].split("audio ")[1].split(" ")[0]
-        LINE = 'ACK' + " sip:" + name_UA + " SIP/2.0\r\n"
-        print LINE + "ENVIADO ACK"
-        my_socket.send(LINE + '\r\n')
-        os.system("chmod 777 mp32rtp")
-        Packet = "./mp32rtp -i " + RTP_IP + " -p "
-        Packet = Packet + RTP_PORT + " < "
-        AUDIO = dic_labels["audio_path"]
-        Packet = Packet + AUDIO
-        print "##############Enviando "+ AUDIO +" a " + RTP_IP + "   " + RTP_PORT
-        os.system(Packet)
-        #data = my_socket.recv(1024)
+    #dt=datetime.datetime.strptime(time.time(),'%Y%m%d%H%M%S')
+    Handler.writer("Received", IP_PROXY, PORT_PROXY, phrase)
+    if METHOD == "INVITE" :    
+        print "RECEIVING" + str(processed_data)
+        if processed_data[0] == "SIP/2.0 100 Trying" and\
+           processed_data[1] == "SIP/2.0 180 Ringing" and\
+           processed_data[2] == "SIP/2.0 200 OK":
+            print "RECEIVING" + processed_data[4]
+            """ INVITE sip:penny@girlnextdoor.com SIP/2.0
+            Content-Type: application/sdp
+            v=0
+            o=leonard@bigbang.org 127.0.0.1
+            s=misesion
+            t=0
+            m=audio 34543 RTP """
+            name_and_IP = processed_data[4].split("o=")[1].split("s=")[0]
+            name_UA = name_and_IP.split(" ")[0]
+            RTP_IP = name_and_IP.split(" ")[1]
+            RTP_PORT = processed_data[4].split("audio ")[1].split(" ")[0]
+            LINE = 'ACK' + " sip:" + name_UA + " SIP/2.0\r\n"
+            print LINE + "ENVIADO ACK"
+            my_socket.send(LINE + '\r\n')
+            phrase = "Send to: " + IP_PROXY + ":" + str(PORT_PROXY) + " "
+            phrase = phrase + LINE.replace('\r\n', " ")
+            fich.write(dt + " " + phrase + "\r\n")
+            os.system("chmod 777 mp32rtp")
+            Packet = "./mp32rtp -i " + RTP_IP + " -p "
+            Packet = Packet + RTP_PORT + " < "
+            AUDIO = dic_labels["audio_path"]
+            Packet = Packet + AUDIO
+            print "############Enviando "+ AUDIO +" a " + RTP_IP + "  " + RTP_PORT
+            phrase = "Send to: " + RTP_IP + ":" + str(RTP_PORT) + " " + AUDIO
+            fich.write(dt + " " + phrase + "\r\n")
+            os.system(Packet)
+            # se cuelga aqui justo
+            #data = my_socket.recv(1024)
+        else:
+            my_socket.send("SIP/2.0 400 Bad Request\r\n\r\n")
     else:
         my_socket.send("SIP/2.0 400 Bad Request\r\n\r\n")
-
-    print "3"
     print "Ending socket..."
     my_socket.close()
     print "END."
-
-    
-    """print "3"
-    print "Ending socket..."
-    my_socket.close()
-    print "END."""
 
 except socket.error:
     print "Error: No server listening at " + IP_PROXY + " port " + str(PORT_PROXY)

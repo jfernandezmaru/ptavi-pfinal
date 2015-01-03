@@ -50,6 +50,10 @@ class XMLHandler(ContentHandler):
         
     def get_labels(self):
         return self.labels
+    def writer(self, mode, IP_PROXY, PORT_PROXY, data):
+        phrase = mode + " from: " +IP_PROXY + ":" + str(PORT_PROXY) + " "
+        phrase = phrase + data.replace('\r\n', " ")
+        fich_log.write(dt + " " + phrase + "\r\n") 
 
 class SIPHandler(SocketServer.DatagramRequestHandler):
     """
@@ -60,11 +64,12 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
         while 1:
             line = self.rfile.read()
             if not line:
-                self.wfile.write("SIP/2.0 400 Bad Request\r\n\r\n")
+                #self.wfile.write("SIP/2.0 400 Bad Request\r\n\r\n")
                 break
             else:
                 # Comprobamos el mensaje recibido del cliente
                 print "INFORMATION: The proxy/registrar send us " + line
+                self.writer("Received", IP_PROXY, PORT_PROXY, data)
                 check1 = line.find("sip:")
                 check2 = line.find("@")
                 check3 = line.find("SIP/2.0")
@@ -99,6 +104,8 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                         if not RTP_SEND_P == "": #Asi no tabulamos lo de encima
                             self.wfile.write(Message + "\r\n")
                         print "SENDING: " + Message
+                        self.writer("Send", IP_PROXY, PORT_PROXY, data)
+
                     elif Method == "ACK":
 
                         #data = my_socket.recv(1024)
@@ -110,8 +117,9 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                         print "------ ENVIANDO " + AUDIO + " A " + dic_labels["AUX_IP"] +" "+ dic_labels["AUX_PORT"]
                         Packet = Packet + AUDIO
                         os.system(Packet)
+                        #Se cuelga aqui justo
                         print "----- ESCUCHO EN " + str(IP) +" "+ str(AUDIO_PORT) 
-                        my_socket.close()
+                        #my_socket.close()
                         print "--- Receiving RTP directly from other UserAgent --- \r\n"
                         
                         print "AUDIO WAS SENDED"
@@ -148,6 +156,11 @@ if __name__ == "__main__":
     if dic_labels["regproxy_ip"] == "":
         print "Usage Error: xml file hasn't proxy ip value"
         sys.exit()
+    LOG = dic_labels["log_path"]
+    if LOG == "":
+        print "Empty log path in xml"
+        sys.exit()
+    fich_log = open(LOG, "w")
     SERVER = dic_labels["uaserver_ip"]
     PORT = int(dic_labels["uaserver_puerto"])
     NAME = dic_labels["account_username"]
