@@ -6,12 +6,14 @@ import SocketServer
 import socket
 import sys
 import os
+from datetime import date, datetime
 from xml.sax import make_parser
 from xml.sax.handler import ContentHandler
 
 """
     Programa servidor SIP en UDP
 """
+
 
 
 class XMLHandler(ContentHandler):
@@ -50,10 +52,12 @@ class XMLHandler(ContentHandler):
         
     def get_labels(self):
         return self.labels
-    def writer(self, mode, IP_PROXY, PORT_PROXY, data):
+    def writer(self, mode, IP_PROXY, PORT_PROXY, data, fich):
+
+        dt = datetime.now().strftime("%Y%m%d%H%M%S")
         phrase = mode + " from: " +IP_PROXY + ":" + str(PORT_PROXY) + " "
         phrase = phrase + data.replace('\r\n', " ")
-        fich_log.write(dt + " " + phrase + "\r\n") 
+        fich.write(dt + " " + phrase + "\r\n") 
 
 class SIPHandler(SocketServer.DatagramRequestHandler):
     """
@@ -69,7 +73,7 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
             else:
                 # Comprobamos el mensaje recibido del cliente
                 print "INFORMATION: The proxy/registrar send us " + line
-                self.writer("Received", IP_PROXY, PORT_PROXY, data)
+                self.writer("Send", IP_PROXY, PORT_PROXY, data, Fich_log)
                 check1 = line.find("sip:")
                 check2 = line.find("@")
                 check3 = line.find("SIP/2.0")
@@ -104,7 +108,7 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                         if not RTP_SEND_P == "": #Asi no tabulamos lo de encima
                             self.wfile.write(Message + "\r\n")
                         print "SENDING: " + Message
-                        self.writer("Send", IP_PROXY, PORT_PROXY, data)
+                        self.writer("Send", IP_PROXY, PORT_PROXY, data, Fich_log)
 
                     elif Method == "ACK":
 
@@ -119,14 +123,8 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                         os.system(Packet)
                         #Se cuelga aqui justo
                         print "----- ESCUCHO EN " + str(IP) +" "+ str(AUDIO_PORT) 
-                        #my_socket.close()
                         print "--- Receiving RTP directly from other UserAgent --- \r\n"
-                        
                         print "AUDIO WAS SENDED"
-                        """my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                        my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-                        my_socket.connect((self.RTP_SEND_IP, int(self.RTP_SEND_P)))
-                        my_socket.send(Packet)"""
                         
                     elif Method == "BYE":
                         self.wfile.write("SIP/2.0 200 OK\r\n\r\n")
@@ -138,29 +136,31 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                          Method Not Allowed\r\n\r\n")
             break
 
+
+try:
+    FICH = sys.argv[1]
+    if not os.access(sys.argv[1], os.F_OK):
+        print "Usage: the file doesn't exist"
+        sys.exit()
+except ValueError:
+    print "Usage: python uaserver.py config"
+parser = make_parser()
+Handler = XMLHandler()
+parser.setContentHandler(Handler)
+parser.parse(open(FICH))
+dic_labels = Handler.get_labels()
+if dic_labels["regproxy_ip"] == "":
+    print "Usage Error: xml file hasn't proxy ip value"
+    sys.exit()
+LOG = dic_labels["log_path"]
+if LOG == "":
+    print "Usage Error: no log path value"
+    sys.exit()
+Fich_log = open(LOG,"w")
+
+
 if __name__ == "__main__":
 
-    try:
-        FICH = sys.argv[1]
-        if not os.access(sys.argv[1], os.F_OK):
-            print "Usage: the file doesn't exist"
-            sys.exit()
-    except ValueError:
-        print "Usage: python uaserver.py config"
-
-    parser = make_parser()
-    Handler = XMLHandler()
-    parser.setContentHandler(Handler)
-    parser.parse(open(FICH))
-    dic_labels = Handler.get_labels()
-    if dic_labels["regproxy_ip"] == "":
-        print "Usage Error: xml file hasn't proxy ip value"
-        sys.exit()
-    LOG = dic_labels["log_path"]
-    if LOG == "":
-        print "Empty log path in xml"
-        sys.exit()
-    fich_log = open(LOG, "w")
     SERVER = dic_labels["uaserver_ip"]
     PORT = int(dic_labels["uaserver_puerto"])
     NAME = dic_labels["account_username"]

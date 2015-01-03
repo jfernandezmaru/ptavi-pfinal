@@ -9,11 +9,11 @@ import socket
 import sys
 import os
 import datetime
-from datetime import date, datetime
+
+from uaserver import Fich_log       #problema aqui necesito usar la variable de server
 from uaserver import XMLHandler
 from xml.sax import make_parser
 from xml.sax.handler import ContentHandler
-
 
 if __name__=="__main__":
 
@@ -89,9 +89,7 @@ try:
         print ("Usage: method not allowed")
         sys.exit()
 
-    dt = datetime.now().strftime("%Y%m%d%H%M%S")
-
-    Handler.writer("Send", IP_PROXY, PORT_PROXY, Message)
+    Handler.writer("Send", IP_PROXY, PORT_PROXY, Message, Fich_log)
     #NICK = dic_labels["account_username"]
     my_socket.send(Message + '\r\n')
     print "\r\nSENDING: " + Message
@@ -99,7 +97,7 @@ try:
     print "RECEIVING " + data
     processed_data = data.split('\r\n\r\n')
     #dt=datetime.datetime.strptime(time.time(),'%Y%m%d%H%M%S')
-    Handler.writer("Received", IP_PROXY, PORT_PROXY, phrase)
+    Handler.writer("Received", IP_PROXY, PORT_PROXY, phrase, Fich_log)
     if METHOD == "INVITE" :    
         print "RECEIVING" + str(processed_data)
         if processed_data[0] == "SIP/2.0 100 Trying" and\
