@@ -15,7 +15,6 @@ from xml.sax.handler import ContentHandler
 """
 
 
-
 class XMLHandler(ContentHandler):
 
     def __init__(self):
@@ -108,21 +107,21 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                         if not RTP_SEND_P == "": #Asi no tabulamos lo de encima
                             self.wfile.write(Message + "\r\n")
                         print "SENDING: " + Message
-                        Handler.self.writer("Send", IP_PROXY, PORT_PROXY, data, Fich_log)
+                        Handler.writer("Send", IP_PROXY, PORT_PROXY, Message, Fich_log)
 
                     elif Method == "ACK":
 
-                        #data = my_socket.recv(1024)
-                        os.system("chmod 777 mp32rtp")
                         #print dic_labels["AUX_IP"] + dic_labels["AUX_PORT"]
-                        Packet = "./mp32rtp -i " + dic_labels["AUX_IP"] + " -p "
-                        Packet = Packet + dic_labels["AUX_PORT"] + " < "
+                        Packet = "chmod 777 mp32rtp" + '\r\n\r\n'
+                        Packet = Packet + "./mp32rtp -i " + dic_labels["AUX_IP"]
+                        Packet = Packet  + " -p " + dic_labels["AUX_PORT"]
                         AUDIO = dic_labels["audio_path"]
-                        print "------ ENVIANDO " + AUDIO + " A " + dic_labels["AUX_IP"] +" "+ dic_labels["AUX_PORT"]
-                        Packet = Packet + AUDIO
+                        print "-- ENVIANDO " + AUDIO + " a " + dic_labels["AUX_IP"] +" "+ dic_labels["AUX_PORT"]
+                        Packet = Packet + " < " + AUDIO
                         os.system(Packet)
+                        Handler.writer("Send", dic_labels["AUX_IP"], dic_labels["AUX_PORT"], AUDIO, Fich_log)
                         #Se cuelga aqui justo
-                        print "----- ESCUCHO EN " + str(IP) +" "+ str(AUDIO_PORT) 
+                        print "--- ESCUCHO EN " + str(IP) +" "+ str(AUDIO_PORT) 
                         print "--- Receiving RTP directly from other UserAgent --- \r\n"
                         print "AUDIO WAS SENDED"
                         

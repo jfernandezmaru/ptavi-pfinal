@@ -133,7 +133,6 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                         processed_data = data.split('\r\n\r\n') 
                         if processed_data[0] != "SIP/2.0 200 OK" or\
                            processed_data[1] == "":      #comprobamos OK + SDP
-                            print "ME llega respuesta de invite incorrecta"
                             my_socket.send("SIP/2.0 400 Bad Request")
                             break
                         #my_socket.close()
@@ -157,6 +156,7 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                         now = time.time()
                         Expires = int(Expires) + now
                         dic_clients[User] = (IP_client, Port, now, Expires)
+                        # ESCRIBIR AQUI EN EL FICHERO DE LOG DE PROXY
                         
                     elif Metodo == "ACK":
                         #ACK sip:receptor SIP/2.0
@@ -184,8 +184,8 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                     self.wfile.write("SIP/2.0 400 Bad Request\r\n")
             break
 
+
         """
-        
         # Escribe dirección y puerto del cliente (de tupla client_address)
         self.wfile.write("SIP/2.0 200 OK" + '\r\n')
         while 1:
@@ -226,11 +226,7 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                     self.wfile.write("SIP/2.0 400 BAD REQUEST" + '\r\n')
             if not line:
                 break
-                
-                
-             """       
-           
-
+            """
 
 if __name__ == "__main__":
 

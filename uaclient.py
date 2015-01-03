@@ -91,14 +91,12 @@ try:
         sys.exit()
 
     Handler.writer("Send", IP_PROXY, PORT_PROXY, Message, Fich_log)
-    #NICK = dic_labels["account_username"]
     my_socket.send(Message + '\r\n')
     print "\r\nSENDING: " + Message
     data = my_socket.recv(1024)
     print "RECEIVING " + data
     processed_data = data.split('\r\n\r\n')
-    #dt=datetime.datetime.strptime(time.time(),'%Y%m%d%H%M%S')
-    Handler.writer("Received", IP_PROXY, PORT_PROXY, phrase, Fich_log)
+    Handler.writer("Received", IP_PROXY, PORT_PROXY, data, Fich_log)
     if METHOD == "INVITE" :    
         print "RECEIVING" + str(processed_data)
         if processed_data[0] == "SIP/2.0 100 Trying" and\
@@ -119,25 +117,21 @@ try:
             LINE = 'ACK' + " sip:" + name_UA + " SIP/2.0\r\n"
             print LINE + "ENVIADO ACK"
             my_socket.send(LINE + '\r\n')
-            phrase = "Send to: " + IP_PROXY + ":" + str(PORT_PROXY) + " "
-            phrase = phrase + LINE.replace('\r\n', " ")
-            Handler.writer(dt + " " + phrase + "\r\n")
-            os.system("chmod 777 mp32rtp")
-            Packet = "./mp32rtp -i " + RTP_IP + " -p "
-            Packet = Packet + RTP_PORT + " < "
+            Handler.writer("Send", IP_PROXY, PORT_PROXY, LINE, Fich_log)
+            Packet = "chmod 777 mp32rtp" + '\r\n\r\n' + "./mp32rtp -i "
+            Packet = Packet + RTP_IP + " -p " + RTP_PORT + " < "
             AUDIO = dic_labels["audio_path"]
             Packet = Packet + AUDIO
-            print "############Enviando "+ AUDIO +" a " + RTP_IP + "  " + RTP_PORT
-            phrase = "Send to: " + RTP_IP + ":" + str(RTP_PORT) + " " + AUDIO
-            Handler.writer(dt + " " + phrase + "\r\n")
+            print "#######Enviando "+ AUDIO +" a " + RTP_IP + "  " + RTP_PORT
+            Handler.writer("Send", RTP_IP, RTP_PORT, AUDIO, Fich_log)
             os.system(Packet)
-            # se cuelga aqui justo
-            #data = my_socket.recv(1024)
+            Fich_log.write(dt + " Finishing client and socket..." + "\r\n") # se cuelga aqui justo
+
         else:
             my_socket.send("SIP/2.0 400 Bad Request\r\n\r\n")
     else:
         my_socket.send("SIP/2.0 400 Bad Request\r\n\r\n")
-    print "Ending socket..."
+
     my_socket.close()
     print "END."
 
