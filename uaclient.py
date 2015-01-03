@@ -8,12 +8,12 @@ Programa cliente que abre un socket a un servidor
 import socket
 import sys
 import os
-import datetime
 
-from uaserver import Fich_log       #problema aqui necesito usar la variable de server
+from uaserver import Fich_log
 from uaserver import XMLHandler
 from xml.sax import make_parser
 from xml.sax.handler import ContentHandler
+from datetime import date, datetime
 
 if __name__=="__main__":
 
@@ -37,6 +37,7 @@ if __name__=="__main__":
     IP = dic_labels["uaserver_ip"]
     PORT = int (dic_labels["uaserver_puerto"])
     AUDIO_PORT = dic_labels["rtpaudio_puerto"]
+    dt = datetime.now().strftime("%Y%m%d%H%M%S")
     my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     my_socket.connect((IP_PROXY, PORT_PROXY))
@@ -120,7 +121,7 @@ try:
             my_socket.send(LINE + '\r\n')
             phrase = "Send to: " + IP_PROXY + ":" + str(PORT_PROXY) + " "
             phrase = phrase + LINE.replace('\r\n', " ")
-            fich.write(dt + " " + phrase + "\r\n")
+            Handler.writer(dt + " " + phrase + "\r\n")
             os.system("chmod 777 mp32rtp")
             Packet = "./mp32rtp -i " + RTP_IP + " -p "
             Packet = Packet + RTP_PORT + " < "
@@ -128,7 +129,7 @@ try:
             Packet = Packet + AUDIO
             print "############Enviando "+ AUDIO +" a " + RTP_IP + "  " + RTP_PORT
             phrase = "Send to: " + RTP_IP + ":" + str(RTP_PORT) + " " + AUDIO
-            fich.write(dt + " " + phrase + "\r\n")
+            Handler.writer(dt + " " + phrase + "\r\n")
             os.system(Packet)
             # se cuelga aqui justo
             #data = my_socket.recv(1024)
@@ -142,5 +143,6 @@ try:
 
 except socket.error:
     print "Error: No server listening at " + IP_PROXY + " port " + str(PORT_PROXY)
+    Fich_log.write("Error: No server listening at" + "\r\n" + "exit")
 except ValueError:
     print "Usage: python uaclient.py config method option"

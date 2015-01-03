@@ -55,7 +55,7 @@ class XMLHandler(ContentHandler):
     def writer(self, mode, IP_PROXY, PORT_PROXY, data, fich):
 
         dt = datetime.now().strftime("%Y%m%d%H%M%S")
-        phrase = mode + " from: " +IP_PROXY + ":" + str(PORT_PROXY) + " "
+        phrase = mode + " : " +IP_PROXY + ":" + str(PORT_PROXY) + " "
         phrase = phrase + data.replace('\r\n', " ")
         fich.write(dt + " " + phrase + "\r\n") 
 
@@ -73,7 +73,7 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
             else:
                 # Comprobamos el mensaje recibido del cliente
                 print "INFORMATION: The proxy/registrar send us " + line
-                self.writer("Send", IP_PROXY, PORT_PROXY, data, Fich_log)
+                Handler.writer("Send", IP_PROXY, PORT_PROXY, line, Fich_log)
                 check1 = line.find("sip:")
                 check2 = line.find("@")
                 check3 = line.find("SIP/2.0")
@@ -108,7 +108,7 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                         if not RTP_SEND_P == "": #Asi no tabulamos lo de encima
                             self.wfile.write(Message + "\r\n")
                         print "SENDING: " + Message
-                        self.writer("Send", IP_PROXY, PORT_PROXY, data, Fich_log)
+                        Handler.self.writer("Send", IP_PROXY, PORT_PROXY, data, Fich_log)
 
                     elif Method == "ACK":
 
@@ -136,6 +136,8 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                          Method Not Allowed\r\n\r\n")
             break
 
+            # Sacamos esto fuera porque necesitamos acceso a Fich_log desde uaclient.
+            # problema se sobreescribe register e invite en log....
 
 try:
     FICH = sys.argv[1]
@@ -151,12 +153,14 @@ parser.parse(open(FICH))
 dic_labels = Handler.get_labels()
 if dic_labels["regproxy_ip"] == "":
     print "Usage Error: xml file hasn't proxy ip value"
+    fich.write("Usage Error: xml file hasn't proxy ip value" + "\r\n" + "exit")
     sys.exit()
 LOG = dic_labels["log_path"]
 if LOG == "":
     print "Usage Error: no log path value"
+    fich.write("Usage Error: no log path value" + "\r\n" + "exit")
     sys.exit()
-Fich_log = open(LOG,"w")
+Fich_log = open(LOG,"a")
 
 
 if __name__ == "__main__":
@@ -166,7 +170,11 @@ if __name__ == "__main__":
     NAME = dic_labels["account_username"]
     IP = dic_labels["uaserver_ip"]
     AUDIO_PORT = dic_labels["rtpaudio_puerto"]
+    IP_PROXY = dic_labels["regproxy_ip"]
+    PORT_PROXY = int(dic_labels["regproxy_puerto"])
+    dt = datetime.now().strftime("%Y%m%d%H%M%S")
     print "\r\nStarting Server at: " + str(SERVER) + " port " + str(PORT)
+    Fich_log.write("Starting Server: " + str(SERVER) + " port " + str(PORT) + "\r\n")
     #Creamos servidor de SIP y escuchamos
     serv = SocketServer.UDPServer((SERVER, PORT), SIPHandler)
     serv.serve_forever()

@@ -48,39 +48,37 @@ class XMLHandler_PROXY(ContentHandler):
     def get_labels(self):
         return self.labels
 
-    def register2file(self, dic_clients):
-        """
-        Método reescribir el fichero con los datos del diccionario
-        """
-        #dic_clients[User] = (IP, Port, now, Expires)
-        database = dic_labels["database_path"]
-        # el path de fichero y musica es el archivo o la direccion??? supongo archivo
-        if database == "":
-            print "Empty database path in pr.xml"
-            sys.exit()
-        fich = open(database, "w") # TENEMOS COMPROBACION DEL FICHERO, permiso escritura
-        phrase = "User" + "\t" + "IP" + "\t"+ "Port" "\t" + "Registered"
-        fich.write(phrase + "Expires" + "\n")
-        now = time.time()
-        keys = dic_clients.keys()
-        for element in keys:
-            if dic_clients[element][3] > now:
-                address = dic_clients[element][0]
-                port = dic_clients[element][1]
-                registered = dic_clients[element][2]
-                expires = dic_clients[element][3]
-                expires = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(exp))
-                registered = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(reg))
-                phrase = element + "\t" + str(address) + "\t" + str(Port) + "\t"
-                fich.write(phrase + "\t" + registered + "\t" + expires + "\n")
+"""    def register2file(self, dic_clients):
 
-            else:
-                address = dic_clients[element][0]
-                #del dic_clients[element]     ---Debemos borrar al cliente del fichero?
-                print "Expiró el tiempo del cliente: (" + element,
-                print " , " + address + ")"
-        fich.close()
+    #dic_clients[User] = (IP, Port, now, Expires)
+    database = dic_labels["database_path"]
+    # el path de fichero y musica es el archivo o la direccion??? supongo archivo
+    if database == "":
+        print "Empty database path in pr.xml"
+        sys.exit()
+    fich = open(database, "w") # TENEMOS COMPROBACION DEL FICHERO, permiso escritura
+    phrase = "User" + "\t" + "IP" + "\t"+ "Port" "\t" + "Registered"
+    fich.write(phrase + "Expires" + "\n")
+    now = time.time()
+    keys = dic_clients.keys()
+    for element in keys:
+        if dic_clients[element][3] > now:
+            address = dic_clients[element][0]
+            port = dic_clients[element][1]
+            registered = dic_clients[element][2]
+            expires = dic_clients[element][3]
+            expires = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(exp))
+            registered = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(reg))
+            phrase = element + "\t" + str(address) + "\t" + str(Port) + "\t"
+            fich.write(phrase + "\t" + registered + "\t" + expires + "\n")
 
+        else:
+            address = dic_clients[element][0]
+            #del dic_clients[element]     ---Debemos borrar al cliente del fichero?
+            print "Expiró el tiempo del cliente: (" + element,
+            print " , " + address + ")"
+    fich.close()
+"""
 class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
     """
     Servidor
@@ -126,6 +124,7 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                         else:
                             parameters = dic_clients[receiver]
                             print parameters
+                            
                         my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
                         my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
                         my_socket.connect((parameters[0], int(parameters[1])))
@@ -134,6 +133,7 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                         processed_data = data.split('\r\n\r\n') 
                         if processed_data[0] != "SIP/2.0 200 OK" or\
                            processed_data[1] == "":      #comprobamos OK + SDP
+                            print "ME llega respuesta de invite incorrecta"
                             my_socket.send("SIP/2.0 400 Bad Request")
                             break
                         #my_socket.close()
