@@ -1,7 +1,7 @@
 <config>
 <accout username="jorge@gmail.com" passwd="pleno"/>
 <uaserver ip="127.0.0.1" puerto="7675"/>
-<rtpaudio puerto= "5656"/>
+<rtpaudio puerto= "56056"/>
 <regproxy ip="127.0.0.1" puerto="9996"/>
 <log path="log_ua2.txt"/>
 <audio path="cancion.mp3"/>

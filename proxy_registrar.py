@@ -156,7 +156,7 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                         now = time.time()
                         Expires = int(Expires) + now
                         dic_clients[User] = (IP_client, Port, now, Expires)
-                        # ESCRIBIR AQUI EN EL FICHERO DE LOG DE PROXY
+                        #                               ESCRIBIR AQUI EN EL FICHERO DE LOG DE PROXY
                         
                     elif Metodo == "ACK":
                         #ACK sip:receptor SIP/2.0

@@ -111,9 +111,9 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
 
                     elif Method == "ACK":
 
+                        os.system("chmod 777 mp32rtp")
                         #print dic_labels["AUX_IP"] + dic_labels["AUX_PORT"]
-                        Packet = "chmod 777 mp32rtp" + '\r\n\r\n'
-                        Packet = Packet + "./mp32rtp -i " + dic_labels["AUX_IP"]
+                        Packet = "./mp32rtp -i " + dic_labels["AUX_IP"]
                         Packet = Packet  + " -p " + dic_labels["AUX_PORT"]
                         AUDIO = dic_labels["audio_path"]
                         print "-- ENVIANDO " + AUDIO + " a " + dic_labels["AUX_IP"] +" "+ dic_labels["AUX_PORT"]

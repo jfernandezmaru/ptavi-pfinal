@@ -118,14 +118,15 @@ try:
             print LINE + "ENVIADO ACK"
             my_socket.send(LINE + '\r\n')
             Handler.writer("Send", IP_PROXY, PORT_PROXY, LINE, Fich_log)
-            Packet = "chmod 777 mp32rtp" + '\r\n\r\n' + "./mp32rtp -i "
-            Packet = Packet + RTP_IP + " -p " + RTP_PORT + " < "
+            os.system("chmod 777 mp32rtp")
+            Packet = "./mp32rtp -i " + RTP_IP + " -p "
+            Packet = Packet + RTP_PORT + " < "
             AUDIO = dic_labels["audio_path"]
             Packet = Packet + AUDIO
-            print "#######Enviando "+ AUDIO +" a " + RTP_IP + "  " + RTP_PORT
+            print "#### Enviando "+ AUDIO +" a " + RTP_IP + "  " + RTP_PORT
             Handler.writer("Send", RTP_IP, RTP_PORT, AUDIO, Fich_log)
-            os.system(Packet)
-            Fich_log.write(dt + " Finishing client and socket..." + "\r\n") # se cuelga aqui justo
+            os.system(Packet)                                   # se cuelga aqui justo
+            Fich_log.write(dt + " Finishing client and socket..." + "\r\n")
 
         else:
             my_socket.send("SIP/2.0 400 Bad Request\r\n\r\n")
