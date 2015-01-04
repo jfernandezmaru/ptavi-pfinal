@@ -48,7 +48,7 @@ class XMLHandler_PROXY(ContentHandler):
     def get_labels(self):
         return self.labels
 
-"""    def register2file(self, dic_clients):
+    def register2file(self, dic_clients):
 
     #dic_clients[User] = (IP, Port, now, Expires)
     database = dic_labels["database_path"]
@@ -74,11 +74,11 @@ class XMLHandler_PROXY(ContentHandler):
 
         else:
             address = dic_clients[element][0]
-            #del dic_clients[element]     ---Debemos borrar al cliente del fichero?
+            #del dic_clients[element]     ---Debemos borrar al cliente del fichero aqui o en el bye?
             print "Expiró el tiempo del cliente: (" + element,
             print " , " + address + ")"
     fich.close()
-"""
+
 class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
     """
     Servidor
@@ -156,6 +156,7 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                         now = time.time()
                         Expires = int(Expires) + now
                         dic_clients[User] = (IP_client, Port, now, Expires)
+                        Handler.register2file(dic_clients)
                         #                               ESCRIBIR AQUI EN EL FICHERO DE LOG DE PROXY
                         
                     elif Metodo == "ACK":
@@ -175,6 +176,9 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                         
                     elif Metodo == "BYE":
                         self.wfile.write("SIP/2.0 200 OK\r\n\r\n")
+                        User = line.split(":")[1]
+                        Port = line.split(":")[2].split(" ")[0]
+                        del dic_clients(User)
                         print "The client " + IP_cliente + " end the conexion"
 
                     else:

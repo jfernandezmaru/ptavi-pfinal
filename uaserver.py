@@ -133,11 +133,14 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                     else:
                         self.wfile.write("SIP/2.0 405\
                          Method Not Allowed\r\n\r\n")
+                else:
+                    self.wfile.write("SIP/2.0 400 Bad Request\r\n\r\n")
             break
-
+            
+            
+            
             # Sacamos esto fuera porque necesitamos acceso a Fich_log desde uaclient.
             # problema se sobreescribe register e invite en log....
-
 try:
     FICH = sys.argv[1]
     if not os.access(sys.argv[1], os.F_OK):
@@ -173,7 +176,7 @@ if __name__ == "__main__":
     PORT_PROXY = int(dic_labels["regproxy_puerto"])
     dt = datetime.now().strftime("%Y%m%d%H%M%S")
     print "\r\nStarting Server at: " + str(SERVER) + " port " + str(PORT)
-    Fich_log.write("Starting Server: " + str(SERVER) + " port " + str(PORT) + "\r\n")
+    Fich_log.write(dt + "Starting Server: " + str(SERVER) + " port " + str(PORT) + "\r\n")
     #Creamos servidor de SIP y escuchamos
     serv = SocketServer.UDPServer((SERVER, PORT), SIPHandler)
     serv.serve_forever()
