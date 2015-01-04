@@ -54,7 +54,7 @@ class XMLHandler(ContentHandler):
     def writer(self, mode, IP_PROXY, PORT_PROXY, data, fich):
 
         dt = datetime.now().strftime("%Y%m%d%H%M%S")
-        phrase = mode + " : " +IP_PROXY + ":" + str(PORT_PROXY) + " "
+        phrase = mode + ": " + IP_PROXY + ":" + str(PORT_PROXY) + " "
         phrase = phrase + data.replace('\r\n', " ")
         fich.write(dt + " " + phrase + "\r\n") 
 
@@ -163,7 +163,6 @@ if LOG == "":
     fich.write("Usage Error: no log path value" + "\r\n" + "exit")
     sys.exit()
 Fich_log = open(LOG,"a")
-
 
 if __name__ == "__main__":
 

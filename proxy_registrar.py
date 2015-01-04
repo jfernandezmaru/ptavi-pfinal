@@ -50,34 +50,33 @@ class XMLHandler_PROXY(ContentHandler):
 
     def register2file(self, dic_clients):
 
-    #dic_clients[User] = (IP, Port, now, Expires)
-    database = dic_labels["database_path"]
-    # el path de fichero y musica es el archivo o la direccion??? supongo archivo
-    if database == "":
-        print "Empty database path in pr.xml"
-        sys.exit()
-    fich = open(database, "w") # TENEMOS COMPROBACION DEL FICHERO, permiso escritura
-    phrase = "User" + "\t" + "IP" + "\t"+ "Port" "\t" + "Registered"
-    fich.write(phrase + "Expires" + "\n")
-    now = time.time()
-    keys = dic_clients.keys()
-    for element in keys:
-        if dic_clients[element][3] > now:
-            address = dic_clients[element][0]
-            port = dic_clients[element][1]
-            registered = dic_clients[element][2]
-            expires = dic_clients[element][3]
-            expires = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(exp))
-            registered = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(reg))
-            phrase = element + "\t" + str(address) + "\t" + str(Port) + "\t"
-            fich.write(phrase + "\t" + registered + "\t" + expires + "\n")
+        database = dic_labels["database_path"]
+        #el path de fichero y musica es el archivo o la direccion??? supongo archivo
+        if database == "":
+            print "Empty database path in pr.xml"
+            sys.exit()
+        fich = open(database, "w") #COMPROBACION DEL FICHERO, permiso escritura
+        phrase = "User" + "\t" + "IP" + "\t"+ "Port" "\t" + "Registered"
+        fich.write(phrase + "Expires" + "\n")
+        now = time.time()
+        keys = dic_clients.keys()
+        for element in keys:
+            if dic_clients[element][3] > now:
+                address = dic_clients[element][0]
+                port = dic_clients[element][1]
+                registered = dic_clients[element][2]
+                expires = dic_clients[element][3]
+                expires = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(exp))
+                registered = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(reg))
+                phrase = element + "\t" + str(address) + "\t" + str(Port) + "\t"
+                fich.write(phrase + "\t" + registered + "\t" + expires + "\n")
 
-        else:
-            address = dic_clients[element][0]
-            #del dic_clients[element]     ---Debemos borrar al cliente del fichero aqui o en el bye?
-            print "Expiró el tiempo del cliente: (" + element,
-            print " , " + address + ")"
-    fich.close()
+            else:
+                address = dic_clients[element][0]
+                #del dic_clients[element]  ---Debemos borrar al cliente del fichero aqui o en el bye?
+                print "Expiró el tiempo del cliente: (" + element,
+                print " , " + address + ")"
+        fich.close()
 
 class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
     """
@@ -96,6 +95,7 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                 break
             else:
                 # Comprobamos el mensaje recibido del cliente
+                dt = datetime.now().strftime("%Y%m%d%H%M%S")
                 print "PROXY-INFO: The client send us " + line
                 check1 = line.find("sip:")
                 check2 = line.find("@")
@@ -118,8 +118,13 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                         send = line.split("s=")[0].split("o=")[1].split(" ")[0]
                         #RTP_SEND_P = line.split("m=audio ")[1].split(" ").[0]
                         print "Received INVITE from " + send + " to " + receiver
+                        phrase = dt + "Received INVITE from " + send + " to "
+                        phrase = phrase + receiver + str(IP) + " port "
+                        Fich_log.write(phrase + str(PORT) + "\r\n")
                         if dic_clients[receiver] == "":
                             self.wfile.write("SIP/2.0 404 User Not Found\r\n")
+                            ph = "Send: " + send + "SIP/2.0 404 User Not Found"
+                            Fich_log.write(dt + ph + "\r\n")
                             break
                         else:
                             parameters = dic_clients[receiver]
@@ -129,17 +134,22 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                         my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
                         my_socket.connect((parameters[0], int(parameters[1])))
                         my_socket.send(line)  #reenviamos al destinatario
+                        ph = "Send: " + receiver + line.replace('\r\n', " ")
+                        Fich_log.write(dt + ph + "\r\n")
                         data = my_socket.recv(1024)
-                        processed_data = data.split('\r\n\r\n') 
+                        processed_data = data.split('\r\n\r\n')
                         if processed_data[0] != "SIP/2.0 200 OK" or\
                            processed_data[1] == "":      #comprobamos OK + SDP
                             my_socket.send("SIP/2.0 400 Bad Request")
+                            ph = dt + "Send: " + receiver + " SIP/2.0 400 Bad"
+                            Fich_log.write(ph + " Request" + "\r\n")
                             break
-                        #my_socket.close()
                         mess = "SIP/2.0 100 Trying\r\n\r\n"
                         mess = mess + "SIP/2.0 180 Ringing\r\n\r\n" + data
                         self.wfile.write(mess)
                         print "SENDING "+ mess
+                        ph = "Send: " + receiver + mess.replace('\r\n', " ")
+                        Fich_log.write(dt + ph + "\r\n")
                         
                     elif Metodo == "REGISTER":
                         """REGISTER sip:leonard@bigbang.org:1234 SIP/2.0
@@ -149,22 +159,29 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                             Port = line.split(":")[2].split(" ")[0]
                             Expires = line.split("Expires: ")[1]
                             self.wfile.write("SIP/2.0 200 OK\r\n\r\n")
+                            ph = dt + "Received: " + receiver + " "
+                            ph = ph + line.replace('\r\n', " ")
+                            Fich_log.write(ph + "\r\n")
                         except ValueError:
-                            self.wfile.write("SIP/2.0 400 Bad Request\r\n\r\n")   
+                            self.wfile.write("SIP/2.0 400 Bad Request\r\n\r\n")
+                            ph = dt + "Send: " + receiver + " SIP/2.0 400 Bad"
+                            Fich_log.write(ph + "Request \r\n") 
                         #Guardar cliente en fichero
                         #Direccion, IP, puerto, la fecha de registro y expires
                         now = time.time()
                         Expires = int(Expires) + now
                         dic_clients[User] = (IP_client, Port, now, Expires)
                         Handler.register2file(dic_clients)
-                        #                               ESCRIBIR AQUI EN EL FICHERO DE LOG DE PROXY
-                        
+                        #           ESCRIBIR AQUI EN EL FICHERO DE LOG DE PROXY
                     elif Metodo == "ACK":
                         #ACK sip:receptor SIP/2.0
                         #enviar ACK al otro cliente con este permiso para RTP
                         receiver = line.split("sip:")[1].split(" ")[0]
                         if dic_clients[receiver] == "":
                             self.wfile.write("SIP/2.0 404 User Not Found\r\n")
+                            ph = dt + "Send: " + receiver + " "
+                            ph = ph + mess.replace('\r\n', " ")
+                            Fich_log.write(ph + "\r\n")
                             break
                         else:
                             parameters = dic_clients[receiver]
@@ -254,11 +271,18 @@ if __name__ == "__main__":
     if PORT == "" or NAME == "":
         print "Usage Error: xml file need too much proxy values"
         sys.exit()
+    LOG = dic_labels["log_path"]
+    if LOG == "":
+        print "Usage Error: no log path value"
+        fich.write("Usage Error: no log path value" + "\r\n" + "exit")
+        sys.exit()
+    Fich_log = open(LOG,"a")
+    dt = datetime.now().strftime("%Y%m%d%H%M%S")
     phrase = "\r\nStarting Server Proxy/Registrar " + NAME + " listening at "
     print phrase + str(IP) + " port " + str(PORT) + "\r\n"
+    Fich_log.write(dt + " " + phrase + str(IP) + " port " + str(PORT) + "\r\n")
     serv = SocketServer.UDPServer((IP, PORT), SIPRegisterHandler)
     serv.serve_forever()
-
 """
 if __name__ == "__main__":
     # Creamos un diccionario de clientes vacio, servidor de eco y escuchamos
