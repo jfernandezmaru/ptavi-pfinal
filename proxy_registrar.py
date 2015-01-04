@@ -159,8 +159,10 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                             Port = line.split(":")[2].split(" ")[0]
                             Expires = line.split("Expires: ")[1]
                             self.wfile.write("SIP/2.0 200 OK\r\n\r\n")
-                            ph = dt + "Received: " + receiver + " "
+                            ph = dt + "Receive: " + receiver + " "
                             ph = ph + line.replace('\r\n', " ")
+                            Fich_log.write(ph + "\r\n")
+                            ph = dt + "Send: SIP/2.0 200 OK"
                             Fich_log.write(ph + "\r\n")
                         except ValueError:
                             self.wfile.write("SIP/2.0 400 Bad Request\r\n\r\n")
@@ -179,8 +181,7 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                         receiver = line.split("sip:")[1].split(" ")[0]
                         if dic_clients[receiver] == "":
                             self.wfile.write("SIP/2.0 404 User Not Found\r\n")
-                            ph = dt + "Send: " + receiver + " "
-                            ph = ph + mess.replace('\r\n', " ")
+                            ph = dt + "Send: SIP/2.0 404 User Not Found"
                             Fich_log.write(ph + "\r\n")
                             break
                         else:
@@ -190,11 +191,18 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                         my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
                         my_socket.connect((parameters[0], int(parameters[1])))
                         my_socket.send(line)  #reenviamos al destinatario
-                        
+                        ph = dt + "Send: " + receiver + " "
+                        ph = ph + line.replace('\r\n', " ")
+                        Fich_log.write(ph + "\r\n")
                     elif Metodo == "BYE":
                         self.wfile.write("SIP/2.0 200 OK\r\n\r\n")
                         User = line.split(":")[1]
                         Port = line.split(":")[2].split(" ")[0]
+                        ph = dt + "Send: " + User + " SIP/2.0 200 OK"
+                        Fich_log.write(ph + "\r\n")
+                        ph = dt + "Receive: " + User + " "
+                        ph = ph + line.replace('\r\n', " ")
+                        Fich_log.write(ph + "\r\n")
                         del dic_clients(User)
                         print "The client " + IP_cliente + " end the conexion"
 
