@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: iso-8859-15 -*-
-# Practica 6 Javier Fernandez Marugan  PTAVI
+# Practica FINAL Javier Fernandez Marugan  PTAVI
 
 import SocketServer
 import socket
@@ -67,12 +67,11 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
         while 1:
             line = self.rfile.read()
             if not line:
-                #self.wfile.write("SIP/2.0 400 Bad Request\r\n\r\n")
                 break
             else:
                 # Comprobamos el mensaje recibido del cliente
                 print "INFORMATION: The proxy/registrar send us " + line
-                Handler.writer("Send", IP_PROXY, PORT_PROXY, line, Fich_log)
+                Handler.writer(" Receive", IP_PROXY, PORT_PROXY, line, Fich_log)
                 check1 = line.find("sip:")
                 check2 = line.find("@")
                 check3 = line.find("SIP/2.0")
@@ -90,12 +89,12 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                         s=misesion
                         t=0
                         m=audio 34543 RTP"""
-                        #Sacar puerto de RTP cliente para enviar ahí el audio PROBLEMA CON V. GLOBALES
                         RTP_SEND_P = line.split("m=audio ")[1].split(" RTP")[0]
                         RTP = line.split("o=")[1].split("s=")[0]
                         RTP_SEND_IP = RTP.split(" ")[1]
                         dic_labels["AUX_PORT"] = RTP_SEND_P
                         dic_labels["AUX_IP"] = RTP_SEND_IP
+                        IP = dic_labels["uaserver_ip"]
                         if RTP_SEND_P == "":
                             self.wfile.write("INVALID SDP" + '\r\n')
                         Message = "SIP/2.0 200 OK\r\n\r\n"
@@ -107,40 +106,51 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                         if not RTP_SEND_P == "": #Asi no tabulamos lo de encima
                             self.wfile.write(Message + "\r\n")
                         print "SENDING: " + Message
-                        Handler.writer("Send", IP_PROXY, PORT_PROXY, Message, Fich_log)
+                        Handler.writer(" Send", IP_PROXY, PORT_PROXY,\
+                         Message, Fich_log)
 
                     elif Method == "ACK":
 
+                        data = my_socket.recv(1024)
                         os.system("chmod 777 mp32rtp")
-                        #print dic_labels["AUX_IP"] + dic_labels["AUX_PORT"]
-                        Packet = "./mp32rtp -i " + dic_labels["AUX_IP"]
+                        IP = dic_labels["AUX_IP"]
+                        Packet = "./mp32rtp -i " + IP.split("\r\n")[0]
                         Packet = Packet  + " -p " + dic_labels["AUX_PORT"]
                         AUDIO = dic_labels["audio_path"]
-                        print "-- ENVIANDO " + AUDIO + " a " + dic_labels["AUX_IP"] +" "+ dic_labels["AUX_PORT"]
                         Packet = Packet + " < " + AUDIO
                         os.system(Packet)
-                        Handler.writer("Send", dic_labels["AUX_IP"], dic_labels["AUX_PORT"], AUDIO, Fich_log)
-                        #Se cuelga aqui justo
-                        print "--- ESCUCHO EN " + str(IP) +" "+ str(AUDIO_PORT) 
-                        print "--- Receiving RTP directly from other UserAgent --- \r\n"
-                        print "AUDIO WAS SENDED"
+                        Handler.writer(" Send", dic_labels["AUX_IP"]\
+                        , dic_labels["AUX_PORT"], AUDIO, Fich_log)
+                        print "-- AUDIO WAS SENDED --"
                         
                     elif Method == "BYE":
+
                         self.wfile.write("SIP/2.0 200 OK\r\n\r\n")
+                        User = line.split(":")[1]
+                        Port = line.split(":")[2].split(" ")[0]
+                        ph = dt + " Send: " + User + " SIP/2.0 200 OK"
+                        Fich_log.write(ph + "\r\n")
+                        ph = dt + " Receive: " + User + " "
+                        ph = ph + line.replace('\r\n', " ")
+                        Fich_log.write(ph + "\r\n")
                         print "The client " + IP_Cliente + " end the conexion"
+                        Handler.writer(" Receive", str(self.client_address[0]),\
+                        str(self.client_address[1]), line, Fich_log)
+
                     elif Auxiliar == "200":
+
                         Auxiliar = Auxiliar
+                        Handler.writer(" Receive", IP_PROXY, PORT_PROXY,\
+                        Message, Fich_log)
+
                     else:
                         self.wfile.write("SIP/2.0 405\
                          Method Not Allowed\r\n\r\n")
                 else:
                     self.wfile.write("SIP/2.0 400 Bad Request\r\n\r\n")
-            break
+            break        
             
-            
-            
-            # Sacamos esto fuera porque necesitamos acceso a Fich_log desde uaclient.
-            # problema se sobreescribe register e invite en log....
+        # Sacamos esto fuera, necesitamos acceso a Fich_log desde uaclient.
 try:
     FICH = sys.argv[1]
     if not os.access(sys.argv[1], os.F_OK):
@@ -175,8 +185,7 @@ if __name__ == "__main__":
     PORT_PROXY = int(dic_labels["regproxy_puerto"])
     dt = datetime.now().strftime("%Y%m%d%H%M%S")
     print "\r\nStarting Server at: " + str(SERVER) + " port " + str(PORT)
-    Fich_log.write(dt + "Starting Server: " + str(SERVER) + " port " + str(PORT) + "\r\n")
+    Fich_log.write(dt + " Starting Server: " + str(SERVER) + " port " + str(PORT) + "\r\n")
     #Creamos servidor de SIP y escuchamos
     serv = SocketServer.UDPServer((SERVER, PORT), SIPHandler)
     serv.serve_forever()
-

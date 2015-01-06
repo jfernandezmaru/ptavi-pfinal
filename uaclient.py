@@ -1,19 +1,20 @@
 #!/usr/bin/python
 # -*- coding: iso-8859-15 -*-
 # -*- coding: utf-8 -*-
-# Practica 6 Javier Fernandez Marugan  PTAVI
-"""
-Programa cliente que abre un socket a un servidor
-"""
+# Practica FINAL Javier Fernandez Marugan  PTAVI
 import socket
 import sys
 import os
-
 from uaserver import Fich_log
 from uaserver import XMLHandler
 from xml.sax import make_parser
 from xml.sax.handler import ContentHandler
 from datetime import date, datetime
+
+"""
+Programa cliente que abre un socket a un servidor
+"""
+
 
 if __name__=="__main__":
 
@@ -30,7 +31,6 @@ if __name__=="__main__":
     parser.setContentHandler(Handler)
     parser.parse(open(FICH))
     dic_labels = Handler.get_labels()
-    #print dic_labels
     IP_PROXY = dic_labels["regproxy_ip"]
     PORT_PROXY = int(dic_labels["regproxy_puerto"])
     NAME = dic_labels["account_username"]
@@ -43,7 +43,6 @@ if __name__=="__main__":
     my_socket.connect((IP_PROXY, PORT_PROXY))
 
 try:
-    # $python uaclient.py config metodo opción
 
     METHOD = sys.argv[2].upper()
     OPTION = sys.argv[3]
@@ -90,48 +89,42 @@ try:
         print ("Usage: method not allowed")
         sys.exit()
 
-    Handler.writer("Send", IP_PROXY, PORT_PROXY, Message, Fich_log)
+    Handler.writer(" Send", IP_PROXY, PORT_PROXY, Message, Fich_log)
     my_socket.send(Message + '\r\n')
     print "\r\nSENDING: " + Message
     data = my_socket.recv(1024)
     print "RECEIVING " + data
     processed_data = data.split('\r\n\r\n')
-    Handler.writer("Received", IP_PROXY, PORT_PROXY, data, Fich_log)
+    Handler.writer(" Receive", IP_PROXY, PORT_PROXY, data, Fich_log)
     if METHOD == "INVITE" :    
         print "RECEIVING" + str(processed_data)
         if processed_data[0] == "SIP/2.0 100 Trying" and\
            processed_data[1] == "SIP/2.0 180 Ringing" and\
            processed_data[2] == "SIP/2.0 200 OK":
             print "RECEIVING" + processed_data[4]
-            """ INVITE sip:penny@girlnextdoor.com SIP/2.0
-            Content-Type: application/sdp
-            v=0
-            o=leonard@bigbang.org 127.0.0.1
-            s=misesion
-            t=0
-            m=audio 34543 RTP """
             name_and_IP = processed_data[4].split("o=")[1].split("s=")[0]
             name_UA = name_and_IP.split(" ")[0]
             RTP_IP = name_and_IP.split(" ")[1]
             RTP_PORT = processed_data[4].split("audio ")[1].split(" ")[0]
             LINE = 'ACK' + " sip:" + name_UA + " SIP/2.0\r\n"
-            print LINE + "ENVIADO ACK"
             my_socket.send(LINE + '\r\n')
-            Handler.writer("Send", IP_PROXY, PORT_PROXY, LINE, Fich_log)
+            Handler.writer(" Send", IP_PROXY, PORT_PROXY, LINE, Fich_log)
             os.system("chmod 777 mp32rtp")
-            Packet = "./mp32rtp -i " + RTP_IP + " -p "
+            Packet = "./mp32rtp -i " + RTP_IP.split("\r\n")[0] + " -p "
             Packet = Packet + RTP_PORT + " < "
             AUDIO = dic_labels["audio_path"]
             Packet = Packet + AUDIO
-            print "#### Enviando "+ AUDIO +" a " + RTP_IP + "  " + RTP_PORT
-            Handler.writer("Send", RTP_IP, RTP_PORT, AUDIO, Fich_log)
-            os.system(Packet)                                   # se cuelga aqui justo
+            Handler.writer(" Send", RTP_IP, RTP_PORT, AUDIO, Fich_log)
+            os.system(Packet)
+            data = my_socket.recv(1024)
+            LINE = 'BYE' + " sip:" + name_UA + " SIP/2.0\r\n"
+            Handler.writer(" Send", RTP_IP, RTP_PORT, AUDIO, Fich_log)
+            my_socket.send(LINE + '\r\n')
+            data = my_socket.recv(1024)   # No importa, finalizamos igualmente
             Fich_log.write(dt + " Finishing client and socket..." + "\r\n")
-
+    
         else:
             my_socket.send("SIP/2.0 400 Bad Request\r\n\r\n")
-    else:
-        my_socket.send("SIP/2.0 400 Bad Request\r\n\r\n")
 
     my_socket.close()
     print "END."
