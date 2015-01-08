@@ -97,15 +97,14 @@ try:
     processed_data = data.split('\r\n\r\n')
     Handler.writer(" Receive", IP_PROXY, PORT_PROXY, data, Fich_log)
     if METHOD == "INVITE" :    
-        print "RECEIVING" + str(processed_data)
+        Afirm ="SIP/2.0 200 OK\r\nContent-Type: application/sdp"
         if processed_data[0] == "SIP/2.0 100 Trying" and\
            processed_data[1] == "SIP/2.0 180 Ringing" and\
-           processed_data[2] == "SIP/2.0 200 OK":
-            print "RECEIVING" + processed_data[4]
-            name_and_IP = processed_data[4].split("o=")[1].split("s=")[0]
+           processed_data[2] == Afirm:
+            name_and_IP = processed_data[3].split("o=")[1].split("s=")[0]
             name_UA = name_and_IP.split(" ")[0]
             RTP_IP = name_and_IP.split(" ")[1]
-            RTP_PORT = processed_data[4].split("audio ")[1].split(" ")[0]
+            RTP_PORT = processed_data[3].split("audio ")[1].split(" ")[0]
             LINE = 'ACK' + " sip:" + name_UA + " SIP/2.0\r\n"
             my_socket.send(LINE + '\r\n')
             Handler.writer(" Send", IP_PROXY, PORT_PROXY, LINE, Fich_log)
@@ -118,19 +117,23 @@ try:
             os.system(Packet)
             data = my_socket.recv(1024)
             LINE = 'BYE' + " sip:" + name_UA + " SIP/2.0\r\n"
-            Handler.writer(" Send", RTP_IP, RTP_PORT, AUDIO, Fich_log)
+            Handler.writer(" Send", IP_PROXY, PORT_PROXY, AUDIO, Fich_log)
             my_socket.send(LINE + '\r\n')
-            data = my_socket.recv(1024)   # No importa, finalizamos igualmente
+            data = my_socket.recv(1024)  # No importa, finalizamos igualmente
             Fich_log.write(dt + " Finishing client and socket..." + "\r\n")
-    
+
+        elif processed_data[0] == "SIP/2.0 436 Bad Identity Info":
+            break
         else:
             my_socket.send("SIP/2.0 400 Bad Request\r\n\r\n")
-
+            Handler.writer(" Send", IP_PROXY, PORT_PROXY,\
+            "SIP/2.0 400 Bad Request", Fich_log)
     my_socket.close()
     print "END."
 
 except socket.error:
-    print "Error: No server listening at " + IP_PROXY + " port " + str(PORT_PROXY)
+    print "Error: No server listening at " + IP_PROXY + " port " +\
+     str(PORT_PROXY)
     Fich_log.write("Error: No server listening at" + "\r\n" + "exit")
 except ValueError:
     print "Usage: python uaclient.py config method option"

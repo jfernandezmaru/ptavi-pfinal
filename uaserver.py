@@ -90,6 +90,8 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                         t=0
                         m=audio 34543 RTP"""
                         RTP_SEND_P = line.split("m=audio ")[1].split(" RTP")[0]
+                        UA_NAME = line.split(" sip:")[1].split(" SIP/2.0")[0]
+                        dic_labels["UA_NAME"] = UA_NAME
                         RTP = line.split("o=")[1].split("s=")[0]
                         RTP_SEND_IP = RTP.split(" ")[1]
                         dic_labels["AUX_PORT"] = RTP_SEND_P
@@ -97,7 +99,7 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                         IP = dic_labels["uaserver_ip"]
                         if RTP_SEND_P == "":
                             self.wfile.write("INVALID SDP" + '\r\n')
-                        Message = "SIP/2.0 200 OK\r\n\r\n"
+                        Message = "SIP/2.0 200 OK\r\n"
                         Message = Message + "Content-Type: application/sdp\r\n"
                         Message = Message + "\r\nv=0\r\n"
                         Message = Message + "o=" + NAME + " " + IP + "\r\n"
@@ -125,17 +127,17 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                         
                     elif Method == "BYE":
 
-                        self.wfile.write("SIP/2.0 200 OK\r\n\r\n")
                         User = line.split(":")[1]
-                        Port = line.split(":")[2].split(" ")[0]
                         ph = dt + " Receive: " + User + " "
                         ph = ph + line.replace('\r\n', " ")
                         Fich_log.write(ph + "\r\n")
                         ph = dt + " Send: " + User + " SIP/2.0 200 OK"
                         Fich_log.write(ph + "\r\n")
-                        print "The client " + IP_Cliente + " end the conexion"
-                        Handler.writer(" Receive", str(self.client_address[0]),\
-                        str(self.client_address[1]), line, Fich_log)
+                        Client = dic_labels["UA_NAME"]
+                        print "The client " + Client + " end the conexion"
+                        self.wfile.write("SIP/2.0 200 OK\r\n\r\n")
+                        Handler.writer(" Receive", str(self.client_address[0])\
+                        , str(self.client_address[1]), line, Fich_log)
 
                     elif Auxiliar == "200":
 
@@ -146,8 +148,12 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                     else:
                         self.wfile.write("SIP/2.0 405\
                          Method Not Allowed\r\n\r\n")
+                        ph = dt + " Send: " + User + "SIP/2.0 405 Method"
+                        Fich_log.write(ph + " Not Allowed \r\n\r\n")
                 else:
                     self.wfile.write("SIP/2.0 400 Bad Request\r\n\r\n")
+                    ph = dt + " Send: " + User
+                    Fich_log.write(ph +"SIP/2.0 400 Bad Request\r\n\r\n")
             break        
             
         # Sacamos esto fuera, necesitamos acceso a Fich_log desde uaclient.

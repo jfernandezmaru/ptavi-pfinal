@@ -89,6 +89,7 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
             line = self.rfile.read()     
             if not line:
                 self.wfile.write("SIP/2.0 400 Bad Request\r\n")
+                Fich_log.write("Send: SIP/2.0 400 Bad Request\r\n")
                 break
             else:
                 # Comprobamos el mensaje recibido del cliente
@@ -109,34 +110,46 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                         phrase = dt + " Received INVITE from " + send + " to "
                         phrase = phrase + receiver + str(IP) + " port "
                         Fich_log.write(phrase + str(PORT) + "\r\n")
-                        if dic_clients[receiver] == "":
+                        if not dic_clients.has_key(receiver):
                             self.wfile.write("SIP/2.0 404 User Not Found\r\n")
                             ph = " Send: " + send + "SIP/2.0 404 User Not Found"
                             Fich_log.write(dt + ph + "\r\n")
                             break
+                        elif not dic_clients.has_key(send) :
+                            self.wfile.write("SIP/2.0 436 Bad Identity Info\r\n\r\n")
+                            ph = " Send: " + send + "SIP/2.0 436 Bad Identity Info"
+                            Fich_log.write(dt + ph + "\r\n")
+                            break
                         else:
                             parameters = dic_clients[receiver]
-                            print parameters
-                        my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                        my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-                        my_socket.connect((parameters[0], int(parameters[1])))
-                        my_socket.send(line)  #reenviamos al destinatario
-                        ph = " Send: " + receiver + line.replace('\r\n', " ")
-                        Fich_log.write(dt + ph + "\r\n")
-                        data = my_socket.recv(1024)
-                        processed_data = data.split('\r\n\r\n')
-                        if processed_data[0] != "SIP/2.0 200 OK" or\
-                           processed_data[1] == "":    # Comprobamos OK + SDP
-                            my_socket.send("SIP/2.0 400 Bad Request")
-                            ph = dt + " Send: " + receiver + " SIP/2.0 400 Bad"
-                            Fich_log.write(ph + " Request" + "\r\n")
-                            break
-                        mess = "SIP/2.0 100 Trying\r\n\r\n"
-                        mess = mess + "SIP/2.0 180 Ringing\r\n\r\n" + data
-                        self.wfile.write(mess)
-                        print "SENDING "+ mess
-                        ph = " Send: " + receiver + mess.replace('\r\n', " ")
-                        Fich_log.write(dt + ph + "\r\n")
+                            my_socket = socket.socket(socket.AF_INET,\
+                            socket.SOCK_DGRAM)
+                            my_socket.setsockopt(socket.SOL_SOCKET,\
+                            socket.SO_REUSEADDR, 1)
+                            my_socket.connect((parameters[0],\
+                            int(parameters[1])))
+                            my_socket.send(line)  #reenviamos al destinatario
+                            ph = " Send: " + receiver + line.replace('\r\n',\
+                            " ")
+                            Fich_log.write(dt + ph + "\r\n")
+                            data = my_socket.recv(1024)
+                            processed_data = data.split('\r\n\r\n')
+                            Af = "SIP/2.0 200 OK\r\n" + \
+                            "Content-Type: application/sdp"
+                            if processed_data[0] != Af or\
+                               processed_data[1] == "":  # Comprobamos OK+SDP
+                                my_socket.send("SIP/2.0 400 Bad Request")
+                                ph = dt + " Send: " + receiver + \
+                                " SIP/2.0 400 Bad"
+                                Fich_log.write(ph + " Request" + "\r\n")
+                                break
+                            mess = "SIP/2.0 100 Trying\r\n\r\n"
+                            mess = mess + "SIP/2.0 180 Ringing\r\n\r\n" + data
+                            self.wfile.write(mess)
+                            print "SENDING "+ mess
+                            ph = " Send: " + receiver + mess.replace('\r\n',\
+                            " ")
+                            Fich_log.write(dt + ph + "\r\n")
                         
                     elif Metodo == "REGISTER":
                         try:
@@ -157,10 +170,35 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                         Expires = int(Expires) + now
                         dic_clients[User] = (IP_client, Port, now, Expires)
                         Handler.register2file(dic_clients)
-                    elif Metodo == "ACK":
 
+                    elif Metodo == "BYE":
+                        User = line.split(":")[1]
+                        if not dic_clients.has_key(User):
+                            self.wfile.write("SIP/2.0 404 User Not Found\r\n")
+                            ph = " Send: " + send + "SIP/2.0 404 User Not Found"
+                            Fich_log.write(dt + ph + "\r\n")
+                            break
+                        else:
+                            parameters = dic_clients[receiver]
+                        my_socket = socket.socket(socket.AF_INET, \
+                        socket.SOCK_DGRAM)
+                        my_socket.setsockopt(socket.SOL_SOCKET, \
+                        socket.SO_REUSEADDR, 1)
+                        my_socket.connect((parameters[0], int(parameters[1])))
+                        my_socket.send(line)  #reenviamos al destinatario
+                        ph = dt + "Send: " + User + " BYE"
+                        Fich_log.write(ph + "\r\n")
+                        data = my_socket.recv(1024)
+                        ph = dt + "Receive: " + User + " "
+                        ph = ph + data.replace('\r\n', " ")
+                        Fich_log.write(ph + "\r\n")
+                        self.wfile.write(data)
+                        del dic_clients[User]
+                        print "The client " + Port + " end the conexion"
+
+                    elif Metodo == "ACK":
                         receiver = line.split("sip:")[1].split(" ")[0]
-                        if dic_clients[receiver] == "":
+                        if not dic_clients.has_key(receiver):
                             self.wfile.write("SIP/2.0 404 User Not Found\r\n")
                             ph = dt + " Send: SIP/2.0 404 User Not Found"
                             Fich_log.write(ph + "\r\n")
@@ -168,8 +206,10 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                         else:
                             parameters = dic_clients[receiver]
                             print parameters
-                        my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                        my_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                        my_socket = socket.socket(socket.AF_INET, \
+                        socket.SOCK_DGRAM)
+                        my_socket.setsockopt(socket.SOL_SOCKET, \
+                        socket.SO_REUSEADDR, 1)
                         my_socket.connect((parameters[0], int(parameters[1])))
                         my_socket.send(line)  #reenviamos al destinatario
                         ph = dt + " Send: " + receiver + " "
@@ -178,8 +218,12 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                     else:
                         self.wfile.write("SIP/2.0 405\
                          Method Not Allowed\r\n\r\n")
+                        ph = dt + " Send: " + receiver + " "
+                        ph = ph + "SIP/2.0 405 Method Not Allowed"
+                        Fich_log.write(ph + "\r\n")
                 else:
                     self.wfile.write("SIP/2.0 400 Bad Request\r\n")
+                    Fich_log.write("Send: SIP/2.0 400 Bad Request\r\n")
             break
 
 if __name__ == "__main__":
@@ -197,7 +241,6 @@ if __name__ == "__main__":
     parser.parse(open(FICH))
     dic_labels = Handler.get_labels()
     dic_clients = {}
-    print dic_labels
     IP = dic_labels["server_ip"]
     PORT = int(dic_labels["server_puerto"])
     NAME = dic_labels["server_name"]
