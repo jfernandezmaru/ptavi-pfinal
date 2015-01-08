@@ -123,7 +123,7 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                         os.system(Packet)
                         Handler.writer(" Send", dic_labels["AUX_IP"]\
                         , dic_labels["AUX_PORT"], AUDIO, Fich_log)
-                        print "-- AUDIO WAS SENDED --"
+                        print " -AUDIO WAS SENDED-"
                         
                     elif Method == "BYE":
 

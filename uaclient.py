@@ -123,7 +123,7 @@ try:
             Fich_log.write(dt + " Finishing client and socket..." + "\r\n")
 
         elif processed_data[0] == "SIP/2.0 436 Bad Identity Info":
-            break
+            print ""
         else:
             my_socket.send("SIP/2.0 400 Bad Request\r\n\r\n")
             Handler.writer(" Send", IP_PROXY, PORT_PROXY,\

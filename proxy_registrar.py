@@ -67,13 +67,14 @@ class XMLHandler_PROXY(ContentHandler):
                 reg = dic_clients[element][2]
                 exp = dic_clients[element][3]
                 expires = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(exp))
-                registered = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(reg))
-                phrase = element + "\t" + str(address) + "\t" + str(port) + "\t"
-                fich.write(phrase + "\t" + registered + "\t" + expires + "\n")
+                registered = time.strftime('%Y-%m-%d %H:%M:%S',\
+                time.gmtime(reg))
+                phras = element + "\t" + str(address) + "\t" + str(port) + "\t"
+                fich.write(phras + "\t" + registered + "\t" + expires + "\n")
 
             else:
                 address = dic_clients[element][0]
-                #del dic_clients[element]  ---Debemos borrar al cliente del fichero aqui o en el bye?
+                del dic_clients[element]
                 print "Expiró el tiempo del cliente: (" + element,
                 print " , " + address + ")"
         fich.close()
@@ -116,8 +117,10 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                             Fich_log.write(dt + ph + "\r\n")
                             break
                         elif not dic_clients.has_key(send) :
-                            self.wfile.write("SIP/2.0 436 Bad Identity Info\r\n\r\n")
-                            ph = " Send: " + send + "SIP/2.0 436 Bad Identity Info"
+                            self.wfile.\
+                            write("SIP/2.0 436 Bad Identity Info\r\n\r\n")
+                            ph = " Send: " + send\
+                             + "SIP/2.0 436 Bad Identity Info"
                             Fich_log.write(dt + ph + "\r\n")
                             break
                         else:
@@ -175,7 +178,7 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                         User = line.split(":")[1]
                         if not dic_clients.has_key(User):
                             self.wfile.write("SIP/2.0 404 User Not Found\r\n")
-                            ph = " Send: " + send + "SIP/2.0 404 User Not Found"
+                            ph = " Send: " + User + "SIP/2.0 404 User Not Found"
                             Fich_log.write(dt + ph + "\r\n")
                             break
                         else:
@@ -205,7 +208,6 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                             break
                         else:
                             parameters = dic_clients[receiver]
-                            print parameters
                         my_socket = socket.socket(socket.AF_INET, \
                         socket.SOCK_DGRAM)
                         my_socket.setsockopt(socket.SOL_SOCKET, \
@@ -223,7 +225,7 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                         Fich_log.write(ph + "\r\n")
                 else:
                     self.wfile.write("SIP/2.0 400 Bad Request\r\n")
-                    Fich_log.write("Send: SIP/2.0 400 Bad Request\r\n")
+                    Fich_log.write(dt + "Send: SIP/2.0 400 Bad Request\r\n")
             break
 
 if __name__ == "__main__":
