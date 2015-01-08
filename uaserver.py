@@ -111,7 +111,7 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
 
                     elif Method == "ACK":
 
-                        data = my_socket.recv(1024)
+                        #data = my_socket.recv(1024)
                         os.system("chmod 777 mp32rtp")
                         IP = dic_labels["AUX_IP"]
                         Packet = "./mp32rtp -i " + IP.split("\r\n")[0]
@@ -128,10 +128,10 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                         self.wfile.write("SIP/2.0 200 OK\r\n\r\n")
                         User = line.split(":")[1]
                         Port = line.split(":")[2].split(" ")[0]
-                        ph = dt + " Send: " + User + " SIP/2.0 200 OK"
-                        Fich_log.write(ph + "\r\n")
                         ph = dt + " Receive: " + User + " "
                         ph = ph + line.replace('\r\n', " ")
+                        Fich_log.write(ph + "\r\n")
+                        ph = dt + " Send: " + User + " SIP/2.0 200 OK"
                         Fich_log.write(ph + "\r\n")
                         print "The client " + IP_Cliente + " end the conexion"
                         Handler.writer(" Receive", str(self.client_address[0]),\
