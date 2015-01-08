@@ -108,12 +108,16 @@ try:
             LINE = 'ACK' + " sip:" + name_UA + " SIP/2.0\r\n"
             my_socket.send(LINE + '\r\n')
             Handler.writer(" Send", IP_PROXY, PORT_PROXY, LINE, Fich_log)
+            phrase = "cvlc rtp://@" + IP + ":" + AUDIO_PORT + "&"
+            os.system("chmod 777 cvlc")
+            os.system(phrase)
             os.system("chmod 777 mp32rtp")
             Packet = "./mp32rtp -i " + RTP_IP.split("\r\n")[0] + " -p "
             Packet = Packet + RTP_PORT + " < "
             AUDIO = dic_labels["audio_path"]
             Packet = Packet + AUDIO
-            Handler.writer(" Send", RTP_IP, RTP_PORT, AUDIO, Fich_log)
+            Handler.writer(" Send", RTP_IP.split("\r\n")[0], RTP_PORT,\
+            AUDIO, Fich_log)
             os.system(Packet)
             data = my_socket.recv(1024)
             LINE = 'BYE' + " sip:" + name_UA + " SIP/2.0\r\n"

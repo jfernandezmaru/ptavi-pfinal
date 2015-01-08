@@ -80,7 +80,7 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                     Method = lista[0].upper()
                     Auxiliar = lista[1]
                     IP_Cliente = str(self.client_address[0])
-
+                    IP = dic_labels["uaserver_ip"]
                     if Method == "INVITE":
                         """INVITE sip:penny@girlnextdoor.com SIP/2.0
                         Content-Type: application/sdp
@@ -96,7 +96,6 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                         RTP_SEND_IP = RTP.split(" ")[1]
                         dic_labels["AUX_PORT"] = RTP_SEND_P
                         dic_labels["AUX_IP"] = RTP_SEND_IP
-                        IP = dic_labels["uaserver_ip"]
                         if RTP_SEND_P == "":
                             self.wfile.write("INVALID SDP" + '\r\n')
                         Message = "SIP/2.0 200 OK\r\n"
@@ -114,6 +113,9 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                     elif Method == "ACK":
 
                         #data = my_socket.recv(1024)
+                        os.system("chmod 777 cvlc")
+                        phrase = "cvlc rtp://@" + IP + ":" + AUDIO_PORT + "&"
+                        os.system(phrase)
                         os.system("chmod 777 mp32rtp")
                         IP = dic_labels["AUX_IP"]
                         Packet = "./mp32rtp -i " + IP.split("\r\n")[0]
@@ -121,7 +123,7 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                         AUDIO = dic_labels["audio_path"]
                         Packet = Packet + " < " + AUDIO
                         os.system(Packet)
-                        Handler.writer(" Send", dic_labels["AUX_IP"]\
+                        Handler.writer(" Send", IP.split("\r\n")[0]\
                         , dic_labels["AUX_PORT"], AUDIO, Fich_log)
                         print " -AUDIO WAS SENDED-"
                         
