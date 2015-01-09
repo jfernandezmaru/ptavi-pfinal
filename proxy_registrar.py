@@ -156,19 +156,16 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                             processed_data = data.split('\r\n\r\n')
                             Af = "SIP/2.0 200 OK\r\n" + \
                                 "Content-Type: application/sdp"
-                            if processed_data[0] != Af or\
-                               processed_data[1] == "":
+                            if processed_data[2] != Af:
                                 my_socket.send("SIP/2.0 400 Bad Request")
                                 ph = dt + " Send: " + IP_cl + ":" +\
                                     PORT_cl + " SIP/2.0 400 Bad Request"
                                 Fich_log.write(ph + "\r\n")
                                 break
-                            mess = "SIP/2.0 100 Trying\r\n\r\n"
-                            mess = mess + "SIP/2.0 180 Ringing\r\n\r\n" + data
-                            self.wfile.write(mess)
-                            print "SENDING " + mess
+                            self.wfile.write(data)
+                            print "SENDING " + data
                             ph = " Send: " + IP_cl + ":" + PORT_cl +\
-                                " " + mess.replace('\r\n', " ")
+                                " " + data.replace('\r\n', " ")
                             Fich_log.write(dt + ph + "\r\n")
 
                     elif Metodo == "REGISTER":

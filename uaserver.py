@@ -75,6 +75,9 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
             if not line:
                 break
             else:
+                IP_Cliente = str(self.client_address[0])
+                Port_client = str(self.client_address[1])
+                IP = dic_labels["uaserver_ip"]
                 print "INFORMATION: The proxy/registrar send us " + line
                 Handler.writer("Receive", IP_PROXY, PORT_PROXY, line, Fich_log)
                 check1 = line.find("sip:")
@@ -84,9 +87,6 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                     lista = line.split(" ")
                     Method = lista[0].upper()
                     Auxiliar = lista[1]
-                    IP_Cliente = str(self.client_address[0])
-                    Port_client = str(self.client_address[1])
-                    IP = dic_labels["uaserver_ip"]
                     Handler.writer(" Receive", IP_PROXY, PORT_PROXY,
                                    line, Fich_log)
                     if Method == "INVITE":
@@ -99,12 +99,15 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                         dic_labels["AUX_IP"] = RTP_SEND_IP
                         if RTP_SEND_P == "":
                             self.wfile.write("INVALID SDP" + '\r\n')
-                        Message = "SIP/2.0 200 OK\r\n"
+                        Message = "SIP/2.0 100 Trying\r\n\r\n"
+                        Message = Message + "SIP/2.0 180 Ringing\r\n\r\n"
+                        Message = Message + "SIP/2.0 200 OK\r\n"
                         Message = Message + "Content-Type: application/sdp\r\n"
                         Message = Message + "\r\nv=0\r\n"
                         Message = Message + "o=" + NAME + " " + IP + "\r\n"
                         Message = Message + "s=mysession \r\nt=0 \r\n"
-                        Message = Message + "m=audio " + AUDIO_PORT + "RTP\r\n"
+                        Message = Message + "m=audio " + AUDIO_PORT
+                        Message = Message + " RTP\r\n"
                         if not RTP_SEND_P == "":
                             self.wfile.write(Message + "\r\n")
                         print "SENDING: " + Message
@@ -112,7 +115,6 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                                        Message, Fich_log)
 
                     elif Method == "ACK":
-
                         phrase = "cvlc rtp://@" + IP + ":" + AUDIO_PORT + "&"
                         os.system(phrase)
                         os.system("chmod 777 mp32rtp")
@@ -140,12 +142,13 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                     else:
                         self.wfile.write("SIP/2.0 405\
                                          Method Not Allowed\r\n\r\n")
-                        ph = dt + " Send: " + User + "SIP/2.0 405 Method"
+                        ph = dt + " Send: " + IP + ":" + AUDIO_PORT +\
+                            "SIP/2.0 405 Method"
                         Fich_log.write(ph + " Not Allowed \r\n\r\n")
                 else:
                     self.wfile.write("SIP/2.0 400 Bad Request\r\n\r\n")
-                    ph = dt + " Send: " + User
-                    Fich_log.write(ph + "SIP/2.0 400 Bad Request\r\n\r\n")
+                    ph = dt + " Send: " + IP + ":" + AUDIO_PORT
+                    Fich_log.write(ph + " SIP/2.0 400 Bad Request\r\n\r\n")
             break
 
             # Sacamos esto fuera, necesitamos acceso a Fich_log desde uaclient.
