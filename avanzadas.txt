@@ -1,2 +1,2 @@
-“Consistencia frente a valores erroneos”
-“Integracion de (c)vlc”
+Consistencia frente a valores erroneos
+Integración de (c)vlc
