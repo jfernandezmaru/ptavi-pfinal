@@ -109,7 +109,7 @@ try:
             my_socket.send(LINE + '\r\n')
             Handler.writer(" Send", IP_PROXY, PORT_PROXY, LINE, Fich_log)
             phrase = "cvlc rtp://@" + IP + ":" + AUDIO_PORT + "&"
-            os.system("chmod 777 cvlc")
+            os.system("chmod 777 vlc")
             os.system(phrase)
             os.system("chmod 777 mp32rtp")
             Packet = "./mp32rtp -i " + RTP_IP.split("\r\n")[0] + " -p "
@@ -119,10 +119,6 @@ try:
             Handler.writer(" Send", RTP_IP.split("\r\n")[0], RTP_PORT,\
             AUDIO, Fich_log)
             os.system(Packet)
-            data = my_socket.recv(1024)
-            LINE = 'BYE' + " sip:" + name_UA + " SIP/2.0\r\n"
-            Handler.writer(" Send", IP_PROXY, PORT_PROXY, AUDIO, Fich_log)
-            my_socket.send(LINE + '\r\n')
             data = my_socket.recv(1024)  # No importa, finalizamos igualmente
             Fich_log.write(dt + " Finishing client and socket..." + "\r\n")
 
