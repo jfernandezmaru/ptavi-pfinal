@@ -47,6 +47,12 @@ class XMLHandler_PROXY(ContentHandler):
                     except socket.error:
                         print "Usage: Invalid IP"
                         sys.exit()
+                elif label == "server_puerto":
+                    try:
+                        int(self.labels[label])
+                    except ValueError:
+                        print "Usage: Invalid Port"
+                        sys.exit()
         dic_atributes = self.labels
 
     def get_tags(self):
@@ -73,8 +79,6 @@ class XMLHandler_PROXY(ContentHandler):
                 port = dic_clients[element][1]
                 reg = dic_clients[element][2]
                 exp = dic_clients[element][3]
-                #expires = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(exp))
-                #registered = time.strftime('%S', time.gmtime(reg))
                 phras = element + "\t" + str(address) + "\t" + str(port) + "\t"
                 fich.write(phras + "\t" + str(reg) + "\t\t" + str(exp) + "\n")
 
@@ -88,7 +92,12 @@ class XMLHandler_PROXY(ContentHandler):
 
 class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
 
+
     def handle(self):
+    
+        global LOG
+        Fich_log = open(LOG,"a")
+        
         """
         Método para manejar las peticiones de los clientes y
         actuar en funcion de su contenido
@@ -215,7 +224,6 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                             ph = dt + " Send: " + IP_client + ":" +\
                             Port_client + data.replace('\r\n', " ")
                             Fich_log.write(ph + "\r\n")
-                            del dic_clients[User]
                             print "The client " + IP_cl + ":" + PORT_cl +\
                             " end the conexion"
 
@@ -254,37 +262,38 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
 
                 Handler.register2file(dic_clients)
             break
-try:
-    FICH = sys.argv[1]
-    if not os.access(sys.argv[1], os.F_OK):
-        print "Usage: the file doesn't exist"
-        sys.exit()
-except ValueError:
-    print "Usage: python proxy_registrar.py config"
-parser = make_parser()
-Handler = XMLHandler_PROXY()
-parser.setContentHandler(Handler)
-parser.parse(open(FICH))
-dic_labels = Handler.get_labels()
-dic_clients = {}
-IP = dic_labels["server_ip"]
-PORT = int(dic_labels["server_puerto"])
-NAME = dic_labels["server_name"]
-if PORT == "" or NAME == "":
-    print "Usage Error: xml file need too much proxy values"
-    sys.exit()
-LOG = dic_labels["log_path"]
-if LOG == "":
-    print "Usage Error: no log path value"
-    fich.write("Usage Error: no log path value" + "\r\n" + "exit")
-    sys.exit()
-Fich_log = open(LOG,"a")
-dt = datetime.now().strftime("%Y%m%d%H%M%S")
 
 if __name__ == "__main__":
 
+    try:
+        FICH = sys.argv[1]
+        if not os.access(sys.argv[1], os.F_OK):
+            print "Usage: the file doesn't exist"
+            sys.exit()
+    except ValueError:
+        print "Usage: python proxy_registrar.py config"
+    parser = make_parser()
+    Handler = XMLHandler_PROXY()
+    parser.setContentHandler(Handler)
+    parser.parse(open(FICH))
+    dic_labels = Handler.get_labels()
+    dic_clients = {}
+    IP = dic_labels["server_ip"]
+    PORT = int(dic_labels["server_puerto"])
+    NAME = dic_labels["server_name"]
+    if PORT == "" or NAME == "":
+        print "Usage Error: xml file need too much proxy values"
+        sys.exit()
+    LOG = dic_labels["log_path"]
+    if LOG == "":
+        print "Usage Error: no log path value"
+        fich.write("Usage Error: no log path value" + "\r\n" + "exit")
+        sys.exit()
+    Fich_log = open(LOG,"a")
+    dt = datetime.now().strftime("%Y%m%d%H%M%S")
+
     phrase = "Starting Server Proxy/Registrar " + NAME + " listening at "
     print "\r\n" + phrase + str(IP) + " port " + str(PORT) + "\r\n"
-    #Fich_log.write(dt + " " + phrase + str(IP) + " port " + str(PORT) + "\r\n")
+    Fich_log.write(dt + " " + phrase + str(IP) + " port " + str(PORT) + "\r\n")
     serv = SocketServer.UDPServer((IP, PORT), SIPRegisterHandler)
     serv.serve_forever()

@@ -69,7 +69,7 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
         Clase de Servidor SIP
     """
     def handle(self):
-        
+        global Fich_log
         while 1:
             line = self.rfile.read()
             if not line:
@@ -126,7 +126,7 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                         os.system(Packet)
                         Handler.writer(" Send", IP.split("\r\n")[0]\
                         , dic_labels["AUX_PORT"], AUDIO, Fich_log)
-                        print " -AUDIO WAS SENDED-"
+                        print "-Audio was sended-"
                         
                     elif Method == "BYE":
 
@@ -151,6 +151,7 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
             break        
             
         # Sacamos esto fuera, necesitamos acceso a Fich_log desde uaclient.
+
 try:
     FICH = sys.argv[1]
     if not os.access(sys.argv[1], os.F_OK):
@@ -173,19 +174,19 @@ if LOG == "":
     fich.write("Usage Error: no log path value" + "\r\n" + "exit")
     sys.exit()
 Fich_log = open(LOG,"a")
+SERVER = dic_labels["uaserver_ip"]
+PORT = int(dic_labels["uaserver_puerto"])
+NAME = dic_labels["account_username"]
+IP = dic_labels["uaserver_ip"]
+AUDIO_PORT = dic_labels["rtpaudio_puerto"]
+IP_PROXY = dic_labels["regproxy_ip"]
+PORT_PROXY = int(dic_labels["regproxy_puerto"])
 
 if __name__ == "__main__":
 
-    SERVER = dic_labels["uaserver_ip"]
-    PORT = int(dic_labels["uaserver_puerto"])
-    NAME = dic_labels["account_username"]
-    IP = dic_labels["uaserver_ip"]
-    AUDIO_PORT = dic_labels["rtpaudio_puerto"]
-    IP_PROXY = dic_labels["regproxy_ip"]
-    PORT_PROXY = int(dic_labels["regproxy_puerto"])
     dt = datetime.now().strftime("%Y%m%d%H%M%S")
     print "\r\nStarting Server at: " + str(SERVER) + " port " + str(PORT)
-    #Fich_log.write(dt + " Starting Server: " + str(SERVER) + " port " + str(PORT) + "\r\n")
+    Fich_log.write(dt + " Starting Server: " + str(SERVER) + " port " + str(PORT) + "\r\n")
     #Creamos servidor de SIP y escuchamos
     serv = SocketServer.UDPServer((SERVER, PORT), SIPHandler)
     serv.serve_forever()

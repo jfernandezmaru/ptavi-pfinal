@@ -109,7 +109,6 @@ try:
             my_socket.send(LINE + '\r\n')
             Handler.writer(" Send", IP_PROXY, PORT_PROXY, LINE, Fich_log)
             phrase = "cvlc rtp://@" + IP + ":" + AUDIO_PORT + "&"
-            #os.system("chmod 777 vlc")
             os.system(phrase)
             os.system("chmod 777 mp32rtp")
             Packet = "./mp32rtp -i " + RTP_IP.split("\r\n")[0] + " -p "
