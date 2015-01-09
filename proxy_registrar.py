@@ -40,6 +40,12 @@ class XMLHandler_PROXY(ContentHandler):
                 self.labels[label] = attrs.get(atribute, "")
                 if label == "server_ip" and self.labels[label] == "":
                     self.labels[label] = "127.0.0.1"#IP por defecto si es vacia
+                elif label == "server_ip":
+                    try:
+                        socket.inet_aton(self.labels[label]) #Compruebo válida
+                    except socket.error:
+                        print "Usage: Invalid IP"
+                        sys.exit()
         dic_atributes = self.labels
 
     def get_tags(self):

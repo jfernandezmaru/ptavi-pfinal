@@ -44,6 +44,12 @@ class XMLHandler(ContentHandler):
                 self.labels[label] = attrs.get(atribute, "")
                 if label == "uaserver_ip" and self.labels[label] == "":
                     self.labels[label] = "127.0.0.1"#IP por defecto si es vacia
+                elif label == "server_ip":
+                    try:
+                        socket.inet_aton(self.labels[label]) #Compruebo válida
+                    except socket.error:
+                        print "Usage: Invalid IP"
+                        sys.exit()
         dic_atributes = self.labels
 
     def get_tags(self):
@@ -129,8 +135,7 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                         User = line.split(":")[1].split(" ")[0]
                         ph = dt + " Send: " + User + " SIP/2.0 200 OK"
                         Fich_log.write(ph + "\r\n")
-                        Client = dic_labels["UA_NAME"]
-                        print "The client " + Client + " end the conexion"
+                        print "The client " + User + " end the conexion"
                         self.wfile.write("SIP/2.0 200 OK\r\n\r\n")
 
                     elif Auxiliar == "200":

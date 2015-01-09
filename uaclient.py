@@ -123,9 +123,8 @@ try:
             Fich_log.write(dt + " Finishing client and socket..." + "\r\n")
 
         elif processed_data[0][0:9] == "SIP/2.0 4":
-            print "The proxy send us: " + processed_data[0]
+            print ""
         else:
-            print processed_data[0][0:8]
             my_socket.send("SIP/2.0 400 Bad Request\r\n\r\n")
             Handler.writer(" Send", IP_PROXY, PORT_PROXY,\
             "SIP/2.0 400 Bad Request", Fich_log)
