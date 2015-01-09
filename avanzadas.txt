@@ -1,2 +1,2 @@
-Consistencia frente a valores erroneos
+Consistencia frente a valores erróneos
 Integración de (c)vlc
