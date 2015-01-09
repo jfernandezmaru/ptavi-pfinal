@@ -19,8 +19,8 @@ class XMLHandler_PROXY(ContentHandler):
     def __init__(self):
 
         self.labels = {"server_name": "", "server_ip": "",
-            "server_puerto": "", "database_path": "",
-            "database_passwdpath": "", "log_path": ""}
+                       "server_puerto": "", "database_path": "",
+                       "database_passwdpath": "", "log_path": ""}
 
         self.atributes = ["name", "ip", "puerto", "path", "passwdpath"]
 
@@ -92,12 +92,10 @@ class XMLHandler_PROXY(ContentHandler):
 
 class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
 
-
     def handle(self):
-    
+
         global LOG
-        Fich_log = open(LOG,"a")
-        
+        Fich_log = open(LOG, "a")
         """
         Método para manejar las peticiones de los clientes y
         actuar en funcion de su contenido
@@ -120,146 +118,144 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                 if check1 >= 0 and check2 >= 0 and check3 >= 0:
                     lista = line.split(" ")
                     Metodo = lista[0].upper()
-                    ph = dt + " Receive: " + IP_client + ":" + Port_client \
-                    + " " + line.replace('\r\n', " ")
+                    ph = dt + " Receive: " + IP_client + ":" + Port_client +\
+                        " " + line.replace('\r\n', " ")
                     Fich_log.write(ph + "\r\n")
                     if Metodo == "INVITE":
                         receiver = line.split(" SIP/2.0")[0].split("sip:")[1]
                         send = line.split("s=")[0].split("o=")[1].split(" ")[0]
                         print "Receive INVITE from " + send + " to " + receiver
-                        if not dic_clients.has_key(receiver):
+                        if not receiver in dic_clients:
                             self.wfile.write("SIP/2.0 404 User Not Found\r\n")
-                            ph = " Send: " + IP_client + ":" + Port_client\
-                            + " SIP/2.0 404 User Not Found"
+                            ph = " Send: " + IP_client + ":" + Port_client +\
+                                " SIP/2.0 404 User Not Found"
                             Fich_log.write(dt + ph + "\r\n")
                             break
-                        elif not dic_clients.has_key(send):
-                            self.wfile.\
-                            write("SIP/2.0 436 Bad Identity Info\r\n\r\n")
-                            ph = " Send: " + IP_client + ":" + Port_client\
-                             + " SIP/2.0 436 Bad Identity Info"
+                        elif not send in dic_clients:
+                            ph = "SIP/2.0 436 Bad Identity Info\r\n\r\n"
+                            self.wfile.write(ph)
+                            ph = " Send: " + IP_client + ":" + Port_client +\
+                                " SIP/2.0 436 Bad Identity Info"
                             Fich_log.write(dt + ph + "\r\n")
                             break
                         else:
                             parameters = dic_clients[receiver]
-                            my_socket = socket.socket(socket.AF_INET, \
-                            socket.SOCK_DGRAM)
-                            my_socket.setsockopt(socket.SOL_SOCKET, \
-                            socket.SO_REUSEADDR, 1)
-                            my_socket.connect((parameters[0], \
-                            int(parameters[1])))
-                            my_socket.send(line)  #reenviamos al destinatario
-                            ph = " Send: " + IP_client + ":" + Port_client\
-                             + " " + line.replace('\r\n'," ")
+                            my_socket = socket.socket(socket.AF_INET,
+                                                      socket.SOCK_DGRAM)
+                            my_socket.setsockopt(socket.SOL_SOCKET,
+                                                 socket.SO_REUSEADDR, 1)
+                            my_socket.connect((parameters[0],
+                                              int(parameters[1])))
+                            my_socket.send(line)
+                            ph = " Send: " + IP_client + ":" + Port_client +\
+                                " " + line.replace('\r\n', " ")
                             Fich_log.write(dt + ph + "\r\n")
                             data = my_socket.recv(1024)
                             IP_cl = str(self.client_address[0])
                             PORT_cl = str(self.client_address[1])
                             processed_data = data.split('\r\n\r\n')
                             Af = "SIP/2.0 200 OK\r\n" + \
-                            "Content-Type: application/sdp"
+                                "Content-Type: application/sdp"
                             if processed_data[0] != Af or\
-                               processed_data[1] == "":  # Comprobamos OK+SDP
+                               processed_data[1] == "":
                                 my_socket.send("SIP/2.0 400 Bad Request")
                                 ph = dt + " Send: " + IP_cl + ":" +\
-                                PORT_cl + " SIP/2.0 400 Bad Request"
+                                    PORT_cl + " SIP/2.0 400 Bad Request"
                                 Fich_log.write(ph + "\r\n")
                                 break
                             mess = "SIP/2.0 100 Trying\r\n\r\n"
                             mess = mess + "SIP/2.0 180 Ringing\r\n\r\n" + data
                             self.wfile.write(mess)
-                            print "SENDING "+ mess
+                            print "SENDING " + mess
                             ph = " Send: " + IP_cl + ":" + PORT_cl +\
-                            " " +  mess.replace('\r\n'," ")
+                                " " + mess.replace('\r\n', " ")
                             Fich_log.write(dt + ph + "\r\n")
-                        
+
                     elif Metodo == "REGISTER":
-                        
                         try:
                             User = line.split(":")[1]
                             Port = line.split(":")[2].split(" ")[0]
                             Expires = line.split("Expires: ")[1]
                             self.wfile.write("SIP/2.0 200 OK\r\n\r\n")
                             ph = dt + " Send: " + IP_client + ":" + \
-                            Port_client + " SIP/2.0 200 OK"
+                                Port_client + " SIP/2.0 200 OK"
                             Fich_log.write(ph + "\r\n")
                         except ValueError:
                             self.wfile.write("SIP/2.0 400 Bad Request\r\n\r\n")
                             ph = dt + " Send: " + IP_client + ":" + \
-                            Port_client + " SIP/2.0 400 Bad Request"
-                            Fich_log.write(ph + "\r\n") 
-                        now = int(time.time ()) 
+                                Port_client + " SIP/2.0 400 Bad Request"
+                            Fich_log.write(ph + "\r\n")
+                        now = int(time.time())
                         Expires = int(Expires)
                         dic_clients[User] = (IP_client, Port, now, Expires)
                         Handler.register2file(dic_clients)
 
                     elif Metodo == "BYE":
                         User = line.split(":")[1].split(" ")[0]
-                        print User
-                        if not dic_clients.has_key(User):
+                        if not User in dic_clients:
                             self.wfile.write("SIP/2.0 404 User Not Found\r\n")
                             ph = " Send: " + IP_client + ":" + \
-                            Port_client + "SIP/2.0 404 User Not Found"
+                                Port_client + "SIP/2.0 404 User Not Found"
                             Fich_log.write(dt + ph + "\r\n")
                             break
                         else:
                             parameters = dic_clients[User]
-                            my_socket = socket.socket(socket.AF_INET, \
-                            socket.SOCK_DGRAM)
-                            my_socket.setsockopt(socket.SOL_SOCKET, \
-                            socket.SO_REUSEADDR, 1)
-                            my_socket.connect((parameters[0],\
-                            int(parameters[1])))
+                            my_socket = socket.socket(socket.AF_INET,
+                                                      socket.SOCK_DGRAM)
+                            my_socket.setsockopt(socket.SOL_SOCKET,
+                                                 socket.SO_REUSEADDR, 1)
+                            my_socket.connect((parameters[0],
+                                              int(parameters[1])))
                             IP_cl = str(self.client_address[0])
                             PORT_cl = str(self.client_address[1])
-                            my_socket.send(line)  #reenviamos al destinatario
+                            my_socket.send(line)
                             ph = dt + " Send: " + IP_cl + ":" + PORT_cl +\
-                            line.replace('\r\n', " ")
+                                line.replace('\r\n', " ")
                             Fich_log.write(ph + "\r\n")
                             data = my_socket.recv(1024)
                             ph = dt + " Receive: " + IP_cl + ":" + PORT_cl + \
-                            data.replace('\r\n', " ")
+                                data.replace('\r\n', " ")
                             Fich_log.write(ph + "\r\n")
                             self.wfile.write(data)
                             ph = dt + " Send: " + IP_client + ":" +\
-                            Port_client + data.replace('\r\n', " ")
+                                Port_client + data.replace('\r\n', " ")
                             Fich_log.write(ph + "\r\n")
                             print "The client " + IP_cl + ":" + PORT_cl +\
-                            " end the conexion"
+                                  " end the conexion"
 
                     elif Metodo == "ACK":
                         receiver = line.split("sip:")[1].split(" ")[0]
-                        if not dic_clients.has_key(receiver):
+                        if not receiver in dic_clients:
                             self.wfile.write("SIP/2.0 404 User Not Found\r\n")
                             ph = dt + " Send: " + IP_client + ":" +\
-                            Port_client + "SIP/2.0 404 User Not Found"
+                                Port_client + "SIP/2.0 404 User Not Found"
                             Fich_log.write(ph + "\r\n")
                             break
                         else:
                             parameters = dic_clients[receiver]
-                            my_socket = socket.socket(socket.AF_INET, \
-                            socket.SOCK_DGRAM)
-                            my_socket.setsockopt(socket.SOL_SOCKET, \
-                            socket.SO_REUSEADDR, 1)
-                            my_socket.connect((parameters[0],\
-                            int(parameters[1])))
+                            my_socket = socket.socket(socket.AF_INET,
+                                                      socket.SOCK_DGRAM)
+                            my_socket.setsockopt(socket.SOL_SOCKET,
+                                                 socket.SO_REUSEADDR, 1)
+                            my_socket.connect((parameters[0],
+                                              int(parameters[1])))
                             IP_cl = str(self.client_address[0])
                             PORT_cl = str(self.client_address[1])
-                            my_socket.send(line)  #reenviamos al destinatario
+                            my_socket.send(line)
                             ph = dt + " Send: " + IP_cl + ":" + PORT_cl + \
-                            " " + line.replace("\r\n", " ")
+                                " " + line.replace("\r\n", " ")
                             Fich_log.write(ph + "\r\n")
                     else:
                         self.wfile.write("SIP/2.0 405\
-                         Method Not Allowed\r\n\r\n")
+                                         Method Not Allowed\r\n\r\n")
                         ph = dt + " Send: " + IP_client + ":" + Port_client \
-                        + " SIP/2.0 405 Method Not Allowed"
+                            + " SIP/2.0 405 Method Not Allowed"
                         Fich_log.write(ph + "\r\n")
                 else:
                     self.wfile.write("SIP/2.0 400 Bad Request\r\n")
-                    Fich_log.write(dt + "Send: " + IP_client + ":" + \
-                    Port_client + " SIP/2.0 400 Bad Request\r\n")
-
+                    Fich_log.write(dt + " Send: " + IP_client + ":"
+                                   + Port_client
+                                   + " SIP/2.0 400 Bad Request\r\n")
                 Handler.register2file(dic_clients)
             break
 
@@ -289,11 +285,12 @@ if __name__ == "__main__":
         print "Usage Error: no log path value"
         fich.write("Usage Error: no log path value" + "\r\n" + "exit")
         sys.exit()
-    Fich_log = open(LOG,"a")
+    Fich_log = open(LOG, "a")
     dt = datetime.now().strftime("%Y%m%d%H%M%S")
 
     phrase = "Starting Server Proxy/Registrar " + NAME + " listening at "
     print "\r\n" + phrase + str(IP) + " port " + str(PORT) + "\r\n"
     Fich_log.write(dt + " " + phrase + str(IP) + " port " + str(PORT) + "\r\n")
+    Fich_log.close()
     serv = SocketServer.UDPServer((IP, PORT), SIPRegisterHandler)
     serv.serve_forever()

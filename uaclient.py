@@ -16,7 +16,7 @@ Programa cliente que abre un socket a un servidor
 """
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
 
     try:
         FICH = sys.argv[1]
@@ -35,7 +35,7 @@ if __name__=="__main__":
     PORT_PROXY = int(dic_labels["regproxy_puerto"])
     NAME = dic_labels["account_username"]
     IP = dic_labels["uaserver_ip"]
-    PORT = int (dic_labels["uaserver_puerto"])
+    PORT = int(dic_labels["uaserver_puerto"])
     AUDIO_PORT = dic_labels["rtpaudio_puerto"]
     dt = datetime.now().strftime("%Y%m%d%H%M%S")
     my_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -47,19 +47,19 @@ try:
     METHOD = sys.argv[2].upper()
     OPTION = sys.argv[3]
     Message = ""
-    phrase = "\r\nStarting a client: IP " + str(IP) + " port " 
+    phrase = "\r\nStarting a client: IP " + str(IP) + " port "
     print phrase + str(PORT) + "\r\n"
     if METHOD == "INVITE":
 
         DIRECTION = OPTION
         check1 = DIRECTION.find("@")
         check2 = DIRECTION.find(".")
-        if check1 and check2 :
+        if check1 and check2:
             Message = METHOD + " sip:" + DIRECTION + " SIP/2.0\r\n"
             Message = Message + "Content-Type: application/sdp \r\n\r\n"
             Message = Message + "v=0 \r\no=" + NAME + " " + IP + "\r\n"
             Message = Message + "s=misesion \r\nt=0 \r\n"
-            Message = Message + "m=audio "+ AUDIO_PORT + " RTP\r\n"
+            Message = Message + "m=audio " + AUDIO_PORT + " RTP\r\n"
 
         else:
             print ("Usage: direction not valid")
@@ -69,7 +69,7 @@ try:
         DIRECTION = OPTION
         check1 = DIRECTION.find("@")
         check2 = DIRECTION.find(".")
-        if check1 and check2 :
+        if check1 and check2:
 
             Message = METHOD + " sip:" + DIRECTION + " SIP/2.0\r\n"
         else:
@@ -79,13 +79,13 @@ try:
 
         try:
             expires = int(OPTION)
-            Message = METHOD + " sip:" + NAME + ":" + str(PORT) + " SIP/2.0\r\n"
-            Message = Message + 'Expires: ' + str(expires) + '\r\n'
+            Mess = METHOD + " sip:" + NAME + ":" + str(PORT) + " SIP/2.0\r\n"
+            Message = Mess + 'Expires: ' + str(expires) + '\r\n'
         except ValueError:
             print ("Usage: expires not valid")
             sys.exit()
     else:
-        
+
         print ("Usage: method not allowed")
         sys.exit()
 
@@ -96,8 +96,8 @@ try:
     print "RECEIVING " + data
     processed_data = data.split('\r\n\r\n')
     Handler.writer(" Receive", IP_PROXY, PORT_PROXY, data, Fich_log)
-    if METHOD == "INVITE" :    
-        Afirm ="SIP/2.0 200 OK\r\nContent-Type: application/sdp"
+    if METHOD == "INVITE":
+        Afirm = "SIP/2.0 200 OK\r\nContent-Type: application/sdp"
         if processed_data[0] == "SIP/2.0 100 Trying" and\
            processed_data[1] == "SIP/2.0 180 Ringing" and\
            processed_data[2] == Afirm:
@@ -115,8 +115,8 @@ try:
             Packet = Packet + RTP_PORT + " < "
             AUDIO = dic_labels["audio_path"]
             Packet = Packet + AUDIO
-            Handler.writer(" Send", RTP_IP.split("\r\n")[0], RTP_PORT,\
-            AUDIO, Fich_log)
+            Handler.writer(" Send", RTP_IP.split("\r\n")[0], RTP_PORT,
+                           AUDIO, Fich_log)
             os.system(Packet)
             data = my_socket.recv(1024)  # No importa, finalizamos igualmente
             Fich_log.write(dt + " Finishing client and socket..." + "\r\n")
@@ -125,14 +125,14 @@ try:
             print ""
         else:
             my_socket.send("SIP/2.0 400 Bad Request\r\n\r\n")
-            Handler.writer(" Send", IP_PROXY, PORT_PROXY,\
-            "SIP/2.0 400 Bad Request", Fich_log)
+            Handler.writer(" Send", IP_PROXY, PORT_PROXY,
+                           "SIP/2.0 400 Bad Request", Fich_log)
     my_socket.close()
     print "END."
 
 except socket.error:
     print "Error: No server listening at " + IP_PROXY + " port " +\
-     str(PORT_PROXY)
+          str(PORT_PROXY)
     Fich_log.write("Error: No server listening at" + "\r\n" + "exit")
 except ValueError:
     print "Usage: python uaclient.py config method option"

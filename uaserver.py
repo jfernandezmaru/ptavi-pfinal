@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# -*- coding: iso-8859-15 -*-
+# -*- coding : iso-8859-15 -*-
 # Practica FINAL Javier Fernandez Marugan  PTAVI
 
 import SocketServer
@@ -18,19 +18,18 @@ from xml.sax.handler import ContentHandler
 class XMLHandler(ContentHandler):
 
     def __init__(self):
+        self.labels = {"account_username": "", "account_passwd": "",
+                       "uaserver_ip": "", "uaserver_puerto": "",
+                       "rtpaudio_puerto": "", "regproxy_ip": "",
+                       "regproxy_puerto": "", "log_path": "", "audio_path": "",
+                       "server_name": "", "server_ip": "", "server_puerto": "",
+                       "database_path": "", "database_passwdpath": ""}
 
-        self.labels={"account_username":"", "account_passwd":"",
-            "uaserver_ip":"","uaserver_puerto":"","rtpaudio_puerto":"",
-            "regproxy_ip":"","regproxy_puerto":"","log_path":"",
-            "audio_path":"","server_name":"","server_ip":"","server_puerto":"",
-            "database_path":"","database_passwdpath":""}   
-
-        self.atributes=["username", "passwd", "ip", "puerto", "path", "name",
-                        "passwdpath"]
+        self.atributes = ["username", "passwd", "ip", "puerto", "path", "name",
+                          "passwdpath"]
 
     def startElement(self, name, attrs):
-
-        dic={}
+        dic = {}
         label = name[0:3]
         all_labels = self.labels.keys()
         key_wanted = ""
@@ -43,10 +42,10 @@ class XMLHandler(ContentHandler):
             if label in self.labels:
                 self.labels[label] = attrs.get(atribute, "")
                 if label == "uaserver_ip" and self.labels[label] == "":
-                    self.labels[label] = "127.0.0.1"#IP por defecto si es vacia
+                    self.labels[label] = "127.0.0.1"
                 elif label == "server_ip":
                     try:
-                        socket.inet_aton(self.labels[label]) #Compruebo válida
+                        socket.inet_aton(self.labels[label])
                     except socket.error:
                         print "Usage: Invalid IP"
                         sys.exit()
@@ -54,15 +53,16 @@ class XMLHandler(ContentHandler):
 
     def get_tags(self):
         return self.labels.keys()
-        
+
     def get_labels(self):
         return self.labels
-    def writer(self, mode, IP_PROXY, PORT_PROXY, data, fich):
 
+    def writer(self, mode, IP_PROXY, PORT_PROXY, data, fich):
         dt = datetime.now().strftime("%Y%m%d%H%M%S")
         phrase = mode + ": " + IP_PROXY + ":" + str(PORT_PROXY) + " "
         phrase = phrase + data.replace('\r\n', " ")
-        fich.write(dt + " " + phrase + "\r\n") 
+        fich.write(dt + " " + phrase + "\r\n")
+
 
 class SIPHandler(SocketServer.DatagramRequestHandler):
     """
@@ -75,9 +75,8 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
             if not line:
                 break
             else:
-                # Comprobamos el mensaje recibido del cliente
                 print "INFORMATION: The proxy/registrar send us " + line
-                Handler.writer(" Receive", IP_PROXY, PORT_PROXY, line, Fich_log)
+                Handler.writer("Receive", IP_PROXY, PORT_PROXY, line, Fich_log)
                 check1 = line.find("sip:")
                 check2 = line.find("@")
                 check3 = line.find("SIP/2.0")
@@ -86,10 +85,10 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                     Method = lista[0].upper()
                     Auxiliar = lista[1]
                     IP_Cliente = str(self.client_address[0])
-                    Port_client = str(self.client_address[1]) 
+                    Port_client = str(self.client_address[1])
                     IP = dic_labels["uaserver_ip"]
-                    Handler.writer(" Receive", IP_PROXY, PORT_PROXY,\
-                    line, Fich_log)
+                    Handler.writer(" Receive", IP_PROXY, PORT_PROXY,
+                                   line, Fich_log)
                     if Method == "INVITE":
                         RTP_SEND_P = line.split("m=audio ")[1].split(" RTP")[0]
                         UA_NAME = line.split(" sip:")[1].split(" SIP/2.0")[0]
@@ -105,29 +104,28 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                         Message = Message + "\r\nv=0\r\n"
                         Message = Message + "o=" + NAME + " " + IP + "\r\n"
                         Message = Message + "s=mysession \r\nt=0 \r\n"
-                        Message = Message + "m=audio "+ AUDIO_PORT + " RTP\r\n"
-                        if not RTP_SEND_P == "": #Asi no tabulamos lo de encima
+                        Message = Message + "m=audio " + AUDIO_PORT + "RTP\r\n"
+                        if not RTP_SEND_P == "":
                             self.wfile.write(Message + "\r\n")
                         print "SENDING: " + Message
-                        Handler.writer(" Send", IP_PROXY, PORT_PROXY,\
-                         Message, Fich_log)
+                        Handler.writer(" Send", IP_PROXY, PORT_PROXY,
+                                       Message, Fich_log)
 
                     elif Method == "ACK":
 
-                        #os.system("chmod 777 vlc")
                         phrase = "cvlc rtp://@" + IP + ":" + AUDIO_PORT + "&"
                         os.system(phrase)
                         os.system("chmod 777 mp32rtp")
                         IP = dic_labels["AUX_IP"]
                         Packet = "./mp32rtp -i " + IP.split("\r\n")[0]
-                        Packet = Packet  + " -p " + dic_labels["AUX_PORT"]
+                        Packet = Packet + " -p " + dic_labels["AUX_PORT"]
                         AUDIO = dic_labels["audio_path"]
                         Packet = Packet + " < " + AUDIO
                         os.system(Packet)
-                        Handler.writer(" Send", IP.split("\r\n")[0]\
-                        , dic_labels["AUX_PORT"], AUDIO, Fich_log)
+                        Handler.writer(" Send", IP.split("\r\n")[0],
+                                       dic_labels["AUX_PORT"], AUDIO, Fich_log)
                         print "-Audio was sended-"
-                        
+
                     elif Method == "BYE":
 
                         User = line.split(":")[1].split(" ")[0]
@@ -141,17 +139,16 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                         Auxiliar = Auxiliar
                     else:
                         self.wfile.write("SIP/2.0 405\
-                         Method Not Allowed\r\n\r\n")
+                                         Method Not Allowed\r\n\r\n")
                         ph = dt + " Send: " + User + "SIP/2.0 405 Method"
                         Fich_log.write(ph + " Not Allowed \r\n\r\n")
                 else:
                     self.wfile.write("SIP/2.0 400 Bad Request\r\n\r\n")
                     ph = dt + " Send: " + User
-                    Fich_log.write(ph +"SIP/2.0 400 Bad Request\r\n\r\n")
-            break        
-            
-        # Sacamos esto fuera, necesitamos acceso a Fich_log desde uaclient.
+                    Fich_log.write(ph + "SIP/2.0 400 Bad Request\r\n\r\n")
+            break
 
+            # Sacamos esto fuera, necesitamos acceso a Fich_log desde uaclient.
 try:
     FICH = sys.argv[1]
     if not os.access(sys.argv[1], os.F_OK):
@@ -173,7 +170,7 @@ if LOG == "":
     print "Usage Error: no log path value"
     fich.write("Usage Error: no log path value" + "\r\n" + "exit")
     sys.exit()
-Fich_log = open(LOG,"a")
+Fich_log = open(LOG, "a")
 SERVER = dic_labels["uaserver_ip"]
 PORT = int(dic_labels["uaserver_puerto"])
 NAME = dic_labels["account_username"]
@@ -186,7 +183,8 @@ if __name__ == "__main__":
 
     dt = datetime.now().strftime("%Y%m%d%H%M%S")
     print "\r\nStarting Server at: " + str(SERVER) + " port " + str(PORT)
-    Fich_log.write(dt + " Starting Server: " + str(SERVER) + " port " + str(PORT) + "\r\n")
+    Fich_log.write(dt + " Starting Server: " + str(SERVER) +
+                   " port " + str(PORT) + "\r\n")
     #Creamos servidor de SIP y escuchamos
     serv = SocketServer.UDPServer((SERVER, PORT), SIPHandler)
     serv.serve_forever()
