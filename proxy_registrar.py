@@ -13,7 +13,6 @@ from xml.sax import make_parser
 from xml.sax.handler import ContentHandler
 from datetime import date, datetime
 
-
 class XMLHandler_PROXY(ContentHandler):
 
     def __init__(self):
@@ -89,14 +88,14 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
         while 1:
             line = self.rfile.read()
             IP_client = str(self.client_address[0])
-            Port_client = str(self.client_address[1])  
+            Port_client = str(self.client_address[1])
+            dt = datetime.now().strftime("%Y%m%d%H%M%S") 
             if not line:
                 self.wfile.write("SIP/2.0 400 Bad Request\r\n")
-                Fich_log.write("Send: SIP/2.0 400 Bad Request\r\n")
+                Fich_log.write(dt + "Send: SIP/2.0 400 Bad Request\r\n")
                 break
             else:
                 # Comprobamos el mensaje recibido del cliente
-                dt = datetime.now().strftime("%Y%m%d%H%M%S")
                 print "PROXY-INFO: The client send us " + line
                 check1 = line.find("sip:")
                 check2 = line.find("@")
@@ -158,6 +157,7 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                             Fich_log.write(dt + ph + "\r\n")
                         
                     elif Metodo == "REGISTER":
+                        
                         try:
                             User = line.split(":")[1]
                             Port = line.split(":")[2].split(" ")[0]
@@ -177,7 +177,8 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                         Handler.register2file(dic_clients)
 
                     elif Metodo == "BYE":
-                        User = line.split(":")[1]
+                        User = line.split(":")[1].split(" ")[0]
+                        print User
                         if not dic_clients.has_key(User):
                             self.wfile.write("SIP/2.0 404 User Not Found\r\n")
                             ph = " Send: " + IP_client + ":" + \
@@ -185,7 +186,7 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                             Fich_log.write(dt + ph + "\r\n")
                             break
                         else:
-                            parameters = dic_clients[receiver]
+                            parameters = dic_clients[User]
                             my_socket = socket.socket(socket.AF_INET, \
                             socket.SOCK_DGRAM)
                             my_socket.setsockopt(socket.SOL_SOCKET, \
@@ -207,7 +208,8 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                             + data.replace('\r\n', " ")
                             Fich_log.write(ph + "\r\n")
                             del dic_clients[User]
-                            print "The client " + Port + " end the conexion"
+                            print "The client " + IP_cl + ":" + PORT_cl +\
+                            " end the conexion"
 
                     elif Metodo == "ACK":
                         receiver = line.split("sip:")[1].split(" ")[0]
@@ -242,9 +244,8 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                     Fich_log.write(dt + "Send: " + IP_client + ":" + \
                     Port_client + " SIP/2.0 400 Bad Request\r\n")
 
-            Handler.register2file(dic_clients)
+                Handler.register2file(dic_clients)
             break
-
 try:
     FICH = sys.argv[1]
     if not os.access(sys.argv[1], os.F_OK):
@@ -276,6 +277,6 @@ if __name__ == "__main__":
 
     phrase = "Starting Server Proxy/Registrar " + NAME + " listening at "
     print "\r\n" + phrase + str(IP) + " port " + str(PORT) + "\r\n"
-    Fich_log.write(dt + " " + phrase + str(IP) + " port " + str(PORT) + "\r\n")
+    #Fich_log.write(dt + " " + phrase + str(IP) + " port " + str(PORT) + "\r\n")
     serv = SocketServer.UDPServer((IP, PORT), SIPRegisterHandler)
     serv.serve_forever()

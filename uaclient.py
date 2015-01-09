@@ -109,7 +109,7 @@ try:
             my_socket.send(LINE + '\r\n')
             Handler.writer(" Send", IP_PROXY, PORT_PROXY, LINE, Fich_log)
             phrase = "cvlc rtp://@" + IP + ":" + AUDIO_PORT + "&"
-            os.system("chmod 777 vlc")
+            #os.system("chmod 777 vlc")
             os.system(phrase)
             os.system("chmod 777 mp32rtp")
             Packet = "./mp32rtp -i " + RTP_IP.split("\r\n")[0] + " -p "
@@ -122,9 +122,10 @@ try:
             data = my_socket.recv(1024)  # No importa, finalizamos igualmente
             Fich_log.write(dt + " Finishing client and socket..." + "\r\n")
 
-        elif processed_data[0] == "SIP/2.0 436 Bad Identity Info":
-            print ""
+        elif processed_data[0][0:9] == "SIP/2.0 4":
+            print "The proxy send us: " + processed_data[0]
         else:
+            print processed_data[0][0:8]
             my_socket.send("SIP/2.0 400 Bad Request\r\n\r\n")
             Handler.writer(" Send", IP_PROXY, PORT_PROXY,\
             "SIP/2.0 400 Bad Request", Fich_log)

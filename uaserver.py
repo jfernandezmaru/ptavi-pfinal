@@ -80,15 +80,11 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                     Method = lista[0].upper()
                     Auxiliar = lista[1]
                     IP_Cliente = str(self.client_address[0])
+                    Port_client = str(self.client_address[1]) 
                     IP = dic_labels["uaserver_ip"]
+                    Handler.writer(" Receive", IP_PROXY, PORT_PROXY,\
+                    line, Fich_log)
                     if Method == "INVITE":
-                        """INVITE sip:penny@girlnextdoor.com SIP/2.0
-                        Content-Type: application/sdp
-                        v=0
-                        o=leonard@bigbang.org 127.0.0.1
-                        s=misesion
-                        t=0
-                        m=audio 34543 RTP"""
                         RTP_SEND_P = line.split("m=audio ")[1].split(" RTP")[0]
                         UA_NAME = line.split(" sip:")[1].split(" SIP/2.0")[0]
                         dic_labels["UA_NAME"] = UA_NAME
@@ -113,7 +109,8 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                     elif Method == "ACK":
 
                         #data = my_socket.recv(1024)
-                        os.system("chmod 777 vlc")
+                        
+                        #os.system("chmod 777 vlc")
                         phrase = "cvlc rtp://@" + IP + ":" + AUDIO_PORT + "&"
                         os.system(phrase)
                         os.system("chmod 777 mp32rtp")
@@ -129,24 +126,16 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
                         
                     elif Method == "BYE":
 
-                        User = line.split(":")[1]
-                        ph = dt + " Receive: " + User + " "
-                        ph = ph + line.replace('\r\n', " ")
-                        Fich_log.write(ph + "\r\n")
+                        User = line.split(":")[1].split(" ")[0]
                         ph = dt + " Send: " + User + " SIP/2.0 200 OK"
                         Fich_log.write(ph + "\r\n")
                         Client = dic_labels["UA_NAME"]
                         print "The client " + Client + " end the conexion"
                         self.wfile.write("SIP/2.0 200 OK\r\n\r\n")
-                        Handler.writer(" Receive", str(self.client_address[0])\
-                        , str(self.client_address[1]), line, Fich_log)
 
                     elif Auxiliar == "200":
 
                         Auxiliar = Auxiliar
-                        Handler.writer(" Receive", IP_PROXY, PORT_PROXY,\
-                        Message, Fich_log)
-
                     else:
                         self.wfile.write("SIP/2.0 405\
                          Method Not Allowed\r\n\r\n")
@@ -193,7 +182,7 @@ if __name__ == "__main__":
     PORT_PROXY = int(dic_labels["regproxy_puerto"])
     dt = datetime.now().strftime("%Y%m%d%H%M%S")
     print "\r\nStarting Server at: " + str(SERVER) + " port " + str(PORT)
-    Fich_log.write(dt + " Starting Server: " + str(SERVER) + " port " + str(PORT) + "\r\n")
+    #Fich_log.write(dt + " Starting Server: " + str(SERVER) + " port " + str(PORT) + "\r\n")
     #Creamos servidor de SIP y escuchamos
     serv = SocketServer.UDPServer((SERVER, PORT), SIPHandler)
     serv.serve_forever()
