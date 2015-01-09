@@ -13,19 +13,20 @@ from xml.sax import make_parser
 from xml.sax.handler import ContentHandler
 from datetime import date, datetime
 
+
 class XMLHandler_PROXY(ContentHandler):
 
     def __init__(self):
 
-        self.labels={"server_name":"", "server_ip":"",
-            "server_puerto":"","database_path":"","database_passwdpath":"",
-            "log_path":""}   
+        self.labels = {"server_name": "", "server_ip": "",
+            "server_puerto": "", "database_path": "",
+            "database_passwdpath": "", "log_path": ""}
 
-        self.atributes=["name", "ip", "puerto", "path", "passwdpath"]
+        self.atributes = ["name", "ip", "puerto", "path", "passwdpath"]
 
     def startElement(self, name, attrs):
 
-        dic={}
+        dic = {}
         label = name[0:3]
         all_labels = self.labels.keys()
         key_wanted = ""
@@ -39,10 +40,10 @@ class XMLHandler_PROXY(ContentHandler):
             if label in self.labels:
                 self.labels[label] = attrs.get(atribute, "")
                 if label == "server_ip" and self.labels[label] == "":
-                    self.labels[label] = "127.0.0.1"#IP por defecto si es vacia
+                    self.labels[label] = "127.0.0.1"
                 elif label == "server_ip":
                     try:
-                        socket.inet_aton(self.labels[label]) #Compruebo válida
+                        socket.inet_aton(self.labels[label])
                     except socket.error:
                         print "Usage: Invalid IP"
                         sys.exit()
@@ -50,7 +51,7 @@ class XMLHandler_PROXY(ContentHandler):
 
     def get_tags(self):
         return self.labels.keys()
-        
+
     def get_labels(self):
         return self.labels
 
@@ -61,7 +62,7 @@ class XMLHandler_PROXY(ContentHandler):
             print "Empty database path in pr.xml"
             sys.exit()
         fich = open(database, "w")
-        phras ="\t" + "User" + "\t\t\t" + "IP" + "\t\t\t"+ "Port" + "\t\t\t"
+        phras = "\t" + "User" + "\t\t\t" + "IP" + "\t\t\t" + "Port" + "\t\t\t"
         fich.write(phras + "Registered" + "\t\t\t" + "Expires" + "\n")
         now = time.time()
         keys = dic_clients.keys()
@@ -84,6 +85,7 @@ class XMLHandler_PROXY(ContentHandler):
                 print " , " + address + ")"
         fich.close()
 
+
 class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
 
     def handle(self):
@@ -95,7 +97,7 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
             line = self.rfile.read()
             IP_client = str(self.client_address[0])
             Port_client = str(self.client_address[1])
-            dt = datetime.now().strftime("%Y%m%d%H%M%S") 
+            dt = datetime.now().strftime("%Y%m%d%H%M%S")
             if not line:
                 self.wfile.write("SIP/2.0 400 Bad Request\r\n")
                 Fich_log.write(dt + "Send: SIP/2.0 400 Bad Request\r\n")
@@ -119,10 +121,10 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                         if not dic_clients.has_key(receiver):
                             self.wfile.write("SIP/2.0 404 User Not Found\r\n")
                             ph = " Send: " + IP_client + ":" + Port_client\
-                             + " SIP/2.0 404 User Not Found"
+                            + " SIP/2.0 404 User Not Found"
                             Fich_log.write(dt + ph + "\r\n")
                             break
-                        elif not dic_clients.has_key(send) :
+                        elif not dic_clients.has_key(send):
                             self.wfile.\
                             write("SIP/2.0 436 Bad Identity Info\r\n\r\n")
                             ph = " Send: " + IP_client + ":" + Port_client\
@@ -131,11 +133,11 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                             break
                         else:
                             parameters = dic_clients[receiver]
-                            my_socket = socket.socket(socket.AF_INET,\
+                            my_socket = socket.socket(socket.AF_INET, \
                             socket.SOCK_DGRAM)
-                            my_socket.setsockopt(socket.SOL_SOCKET,\
+                            my_socket.setsockopt(socket.SOL_SOCKET, \
                             socket.SO_REUSEADDR, 1)
-                            my_socket.connect((parameters[0],\
+                            my_socket.connect((parameters[0], \
                             int(parameters[1])))
                             my_socket.send(line)  #reenviamos al destinatario
                             ph = " Send: " + IP_client + ":" + Port_client\
@@ -210,8 +212,8 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                             data.replace('\r\n', " ")
                             Fich_log.write(ph + "\r\n")
                             self.wfile.write(data)
-                            ph = dt + " Send: " + IP_client + ":" + Port_client \
-                            + data.replace('\r\n', " ")
+                            ph = dt + " Send: " + IP_client + ":" +\
+                            Port_client + data.replace('\r\n', " ")
                             Fich_log.write(ph + "\r\n")
                             del dic_clients[User]
                             print "The client " + IP_cl + ":" + PORT_cl +\
@@ -221,8 +223,8 @@ class SIPRegisterHandler(SocketServer.DatagramRequestHandler):
                         receiver = line.split("sip:")[1].split(" ")[0]
                         if not dic_clients.has_key(receiver):
                             self.wfile.write("SIP/2.0 404 User Not Found\r\n")
-                            ph = dt + " Send: " + IP_client + ":" + Port_client \
-                            + "SIP/2.0 404 User Not Found"
+                            ph = dt + " Send: " + IP_client + ":" +\
+                            Port_client + "SIP/2.0 404 User Not Found"
                             Fich_log.write(ph + "\r\n")
                             break
                         else:

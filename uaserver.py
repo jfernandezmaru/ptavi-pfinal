@@ -114,8 +114,6 @@ class SIPHandler(SocketServer.DatagramRequestHandler):
 
                     elif Method == "ACK":
 
-                        #data = my_socket.recv(1024)
-                        
                         #os.system("chmod 777 vlc")
                         phrase = "cvlc rtp://@" + IP + ":" + AUDIO_PORT + "&"
                         os.system(phrase)
