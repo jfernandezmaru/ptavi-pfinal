@@ -122,10 +122,10 @@ if __name__ == "__main__":
                     "SIP/2.0 200 OK")
         MensajesLog(recibido)
     elif METODO == "INVITE":
-        SDP = ("Content-Type: application/sdp" + '\r\n' + "v=0" + '\n' + "o=" +
-               cHandler.account_username + " " + IP + '\n' + "s=misesion" +
-               '\n' + "t=0" + '\n' + "m=audio " + cHandler.rtpaudio_puerto +
-               " RTP")
+        SDP = ("Content-Type: application/sdp" + '\r\n\r\n' + "v=0" + '\r\n' + "o=" +
+               cHandler.account_username + " " + IP + '\r\n' + "s=misesion" +
+               '\r\n' + "t=0" + '\r\n' + "m=audio " + cHandler.rtpaudio_puerto +
+               " RTP" + '\r\n')
         if data == ("SIP/2.0 100 Trying" + '\r\n\r\n' + "SIP/2.0 180 Ringing" +
                     '\r\n\r\n' + "SIP/2.0 200 OK" + '\r\n\r\n' + SDP):
             recibido = ("Received from " + IP + ":" + str(PORT) + ":" +
